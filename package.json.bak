@@ -7,17 +7,16 @@
     "build": "next build",
     "start": "next start -p 8080",
     "lint": "next lint",
-    "manage-password": "npx ts-node src/lib/managePassword.ts"
+    "manange-password": "ts-node"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-label": "^2.1.0",
-    "@radix-ui/react-navigation-menu": "^1.2.1",
-    "@radix-ui/react-select": "^2.1.2",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-switch": "^1.1.1",
     "@tabler/icons-react": "^3.19.0",
+    "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.8",
@@ -31,7 +30,8 @@
     "sonner": "^1.5.0",
     "tabler": "^1.0.0-alpha.8",
     "tailwind-merge": "^2.5.3",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

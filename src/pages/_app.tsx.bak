@@ -1,0 +1,20 @@
+import type { AppProps } from 'next/app';
+import { useState } from 'react';
+import '@/styles/globals.css';
+
+export const UnlockContext = React.createContext({
+  isUnlocked: false,
+  setIsUnlocked: (value: boolean) => {}
+});
+
+function MyApp({ Component, pageProps }: AppProps) {
+  const [isUnlocked, setIsUnlocked] = useState(false);
+
+  return (
+    <UnlockContext.Provider value={{ isUnlocked, setIsUnlocked }}>
+      <Component {...pageProps} />
+    </UnlockContext.Provider>
+  );
+}
+
+export default MyApp;
