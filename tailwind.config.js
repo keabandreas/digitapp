@@ -25,6 +25,18 @@ module.exports = {
           },
         },
       },
+      colors: {
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+        },
+      },
     },
   },
   plugins: [
@@ -42,6 +54,22 @@ function addVariablesForColors({ addBase, theme }: any) {
   );
 
   addBase({
-    ":root": newVars,
+    ":root": {
+      ...newVars,
+      "--background": "0 0% 100%",
+      "--foreground": "222.2 84% 4.9%",
+      "--primary": "222.2 47.4% 11.2%",
+      "--primary-foreground": "210 40% 98%",
+      "--accent": "210 40% 96.1%",
+      "--accent-foreground": "222.2 47.4% 11.2%",
+    },
+    ".dark": {
+      "--background": "222.2 84% 4.9%",
+      "--foreground": "210 40% 98%",
+      "--primary": "210 40% 98%",
+      "--primary-foreground": "222.2 47.4% 11.2%",
+      "--accent": "217.2 32.6% 17.5%",
+      "--accent-foreground": "210 40% 98%",
+    },
   });
 }

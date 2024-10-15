@@ -38,4 +38,22 @@
   }
 }
 
+/* Add styles for dialog select options */
+.select-content {
+  @apply bg-background text-foreground !important;
+}
+
+/* Add hover and selected states for select options */
+.select-item {
+  @apply relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50;
+}
+
+.select-item:hover {
+  @apply bg-accent;
+}
+
+.select-item[data-state="checked"] {
+  @apply bg-primary text-primary-foreground;
+}
+
 /* Add any other custom styles below */

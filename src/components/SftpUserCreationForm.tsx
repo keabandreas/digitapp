@@ -77,7 +77,7 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SFTP_PYTHON_API_URL}${process.env.NEXT_PUBLIC_SFTP_PYTHON_APP_CREATE_USER}`, {
+      const response = await fetch('/api/create_user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

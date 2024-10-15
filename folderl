@@ -1,0 +1,58 @@
+.
+├── config
+│   ├── next.config.js
+│   ├── postcss.config.js
+│   ├── tailwind.config.js
+│   ├── tsconfig.json
+│   └── eslint.config.js
+├── docker
+│   ├── docker-compose.yml
+│   └── Dockerfile
+├── docs
+│   └── README.md
+├── pages
+│   ├── api
+│   │   └── verify-password.ts
+│   ├── wiki
+│   │   ├── [id].tsx
+│   │   └── index.tsx
+│   ├── _app.tsx
+│   ├── Dashboard.tsx
+│   ├── hostapps.tsx
+│   ├── [id].tsx
+│   ├── index.tsx
+│   ├── statistics.tsx
+│   └── verify-password.ts
+├── public
+├── src
+│   ├── assets
+│   ├── components
+│   │   ├── ui
+│   │   ├── wiki
+│   │   ├── AddNewPageDialog.tsx
+│   │   ├── Header.tsx
+│   │   ├── MarkdownEditor.tsx
+│   │   ├── SftpUserCreationForm.tsx
+│   │   ├── WikiCardGrid.tsx
+│   │   ├── WikiCard.tsx
+│   │   ├── WikiHeader.tsx
+│   │   ├── WikiPage.tsx
+│   │   └── WikiSearch.tsx
+│   ├── hooks
+│   ├── layouts
+│   │   └── Layout.tsx
+│   ├── lib
+│   │   ├── cn.ts
+│   │   ├── crypto.ts
+│   │   ├── encryption.ts
+│   │   └── utils.ts
+│   ├── scripts
+│   │   ├── encrypt-password.ts
+│   │   └── set-password.ts
+│   ├── styles
+│   │   └── globals.css
+│   └── types
+├── components.json
+├── next-env.d.ts
+├── package.json
+└── package-lock.json

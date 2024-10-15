@@ -1,0 +1,34 @@
+'use client'
+
+import React, { useState } from 'react'
+import CsvManager from './CsvManager'
+import { Button } from '@/components/ui/button'
+
+export default function CsvStatisticsPage() {
+  const [mode, setMode] = useState('view')
+
+  const handleComplete = () => {
+    setMode('view')
+  }
+
+  const handleCancel = () => {
+    setMode('view')
+  }
+
+  return (
+    <div className="container mx-auto p-4 space-y-4">
+      <h1 className="text-2xl font-bold mb-4">CSV Statistics</h1>
+      
+      <div className="flex space-x-2 mb-4">
+        <Button onClick={() => setMode('add')}>Add Row</Button>
+        <Button onClick={() => setMode('remove')}>Remove Row</Button>
+      </div>
+
+      <CsvManager 
+        mode={mode} 
+        onComplete={handleComplete} 
+        onCancel={handleCancel} 
+      />
+    </div>
+  )
+}

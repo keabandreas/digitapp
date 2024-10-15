@@ -20,7 +20,6 @@ export default function HostApplications() {
         >
           <CardHeader>
             <GlowingStarsTitle>Create SFTP User</GlowingStarsTitle>
-            <GlowingStarsDescription>Add a new user to the SFTP server</GlowingStarsDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-white/70">Click to create a new SFTP user</p>
