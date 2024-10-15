@@ -1,8 +1,14 @@
-import React from 'react'
-import Dashboard from '@/pages/Dashboard'
+import Head from 'next/head'
+import Layout from '@/components/Layout'
 
 export default function Home() {
   return (
-      <Dashboard />
+    <Layout>
+    <Head>
+    </Head>
+      <main>
+        {/* Rest of your page content */}
+      </main>
+    </Layout>
   )
 }
