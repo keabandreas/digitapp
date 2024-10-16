@@ -9,6 +9,7 @@ export interface WikiPage {
   excerpt: string;
   category: string;
   subCategory: string;
+  isRestricted: boolean;
   restrictedSections?: { start: number; end: number }[];
 }
 

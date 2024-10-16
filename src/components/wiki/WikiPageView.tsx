@@ -21,27 +21,13 @@ export const WikiPageView: React.FC = () => {
 
   if (!selectedPage) return null;
 
-  const renderPageContent = (content: string, restrictedSections?: { start: number; end: number }[]): string => {
-    if (!restrictedSections || restrictedSections.length === 0) {
-      return content;
-    }
-
-    let result = '';
-    let lastIndex = 0;
-
-    restrictedSections.forEach(({ start, end }) => {
-      result += content.slice(lastIndex, start);
-      const restrictedContent = content.slice(start, end);
-      result += isLocked
-        ? `<div class="bg-gray-300 text-gray-300 select-none" aria-hidden="true">${'X'.repeat(restrictedContent.length)}</div>`
-        : `<span class="bg-yellow-200">${restrictedContent}</span>`;
-      lastIndex = end;
-    });
-
-    result += content.slice(lastIndex);
-
-    return result;
-  };
+  if (isLocked && selectedPage.isRestricted) {
+    return (
+      <div className="p-4 bg-gray-100 rounded">
+        <p>This page is restricted. Please unlock the wiki to view its contents.</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -74,14 +60,13 @@ export const WikiPageView: React.FC = () => {
       {isEditing ? (
         <MarkdownEditor
           initialValue={selectedPage.content}
-          onSave={(content, restrictedSections) => handleSavePage({ ...selectedPage, content, restrictedSections })}
+          onSave={(content) => handleSavePage({ ...selectedPage, content })}
           isLocked={isLocked}
-          restrictedSections={selectedPage.restrictedSections}
           onDelete={() => handleDeletePage(selectedPage.id)}
           onClose={() => setSelectedPage(null)}
         />
       ) : (
-        <MarkdownPreview content={renderPageContent(selectedPage.content, selectedPage.restrictedSections)} />
+        <MarkdownPreview content={selectedPage.content} isLocked={isLocked} />
       )}
     </>
   );

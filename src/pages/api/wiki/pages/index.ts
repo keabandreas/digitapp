@@ -26,9 +26,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     case 'POST':
       try {
-        const { title, content, category, subCategory } = req.body;
+        const { title, content, excerpt, category, subCategory, isRestricted } = req.body;
         const id = Date.now().toString();
-        const newPage = { id, title, content, category, subCategory };
+        const newPage = { id, title, content, excerpt, category, subCategory, isRestricted };
         await fs.writeFile(path.join(WIKI_DIR, `${id}.json`), JSON.stringify(newPage));
         res.status(201).json(newPage);
       } catch (error) {

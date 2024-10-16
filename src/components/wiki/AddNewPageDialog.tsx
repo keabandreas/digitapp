@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useWikiContext } from './WikiContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { wikiConfig } from './WikiConfig';
 
 interface AddNewPageDialogProps {
@@ -13,105 +13,91 @@ interface AddNewPageDialogProps {
   onClose: () => void;
 }
 
-export const AddNewPageDialog: React.FC<AddNewPageDialogProps> = ({
-  isOpen,
-  onClose,
-}) => {
+export const AddNewPageDialog: React.FC<AddNewPageDialogProps> = ({ isOpen, onClose }) => {
   const { handleAddPage } = useWikiContext();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [excerpt, setExcerpt] = useState('');
   const [category, setCategory] = useState('');
   const [subCategory, setSubCategory] = useState('');
   const [isRestricted, setIsRestricted] = useState(false);
 
-  const { categories, subCategories } = wikiConfig;
+  const resetForm = () => {
+    setTitle('');
+    setContent('');
+    setExcerpt('');
+    setCategory('');
+    setSubCategory('');
+    setIsRestricted(false);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const newPage = {
       title,
       content,
-      excerpt: content.slice(0, 100) + '...',
+      excerpt,
       category,
       subCategory,
-      restricted: isRestricted,
+      isRestricted,
     };
     handleAddPage(newPage);
     resetForm();
     onClose();
   };
 
-  const resetForm = () => {
-    setTitle('');
-    setContent('');
-    setCategory('');
-    setSubCategory('');
-    setIsRestricted(false);
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Page</DialogTitle>
+          <DialogTitle>Add New Wiki Page</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="content">Content</Label>
-            <Textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="category">Category</Label>
-            <Select value={category} onValueChange={setCategory} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="subCategory">Sub-Category</Label>
-            <Select value={subCategory} onValueChange={setSubCategory} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a sub-category" />
-              </SelectTrigger>
-              <SelectContent>
-                {subCategories.map((subCat) => (
-                  <SelectItem key={subCat} value={subCat}>
-                    {subCat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Input
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+          <Textarea
+            placeholder="Content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            required
+          />
+          <Textarea
+            placeholder="Excerpt"
+            value={excerpt}
+            onChange={(e) => setExcerpt(e.target.value)}
+            required
+          />
+          <Select value={category} onValueChange={setCategory} required>
+            <SelectTrigger>
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              {wikiConfig.categories.map((cat) => (
+                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={subCategory} onValueChange={setSubCategory} required>
+            <SelectTrigger>
+              <SelectValue placeholder="Select subcategory" />
+            </SelectTrigger>
+            <SelectContent>
+              {wikiConfig.subCategories.map((subCat) => (
+                <SelectItem key={subCat} value={subCat}>{subCat}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
+            <Switch
               id="restricted"
               checked={isRestricted}
-              onChange={(e) => setIsRestricted(e.target.checked)}
+              onCheckedChange={setIsRestricted}
             />
-            <Label htmlFor="restricted">Restricted</Label>
+            <label htmlFor="restricted">Restricted</label>
           </div>
           <Button type="submit">Add Page</Button>
         </form>

@@ -52,8 +52,10 @@ export const WikiDirectoryTree: React.FC = () => {
               {groupedPages[category].map(page => (
                 <div
                   key={page.id}
-                  className="flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded border"
-                  onClick={() => setSelectedPage(page)}
+                  className={`flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded border ${
+                    isLocked && page.isRestricted ? 'opacity-50' : ''
+                  }`}
+                  onClick={() => !isLocked || !page.isRestricted ? setSelectedPage(page) : null}
                 >
                   <div className="flex items-center">
                     <FileText className="mr-2" size={16} />
@@ -61,7 +63,7 @@ export const WikiDirectoryTree: React.FC = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     {getSubCategoryIcon(page.subCategory)}
-                    {page.restrictedSections && page.restrictedSections.length > 0 && <Key className="text-purple-500" size={16} />}
+                    {page.isRestricted && <Key className="text-purple-500" size={16} />}
                   </div>
                 </div>
               ))}

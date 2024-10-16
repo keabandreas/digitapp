@@ -9,12 +9,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown, Eye, Save, Lock, Trash2, X } from "lucide-react";
+import MarkdownPreview from './MarkdownPreview'; // Add this import
 
 interface MarkdownEditorProps {
   initialValue: string;
-  onSave: (content: string, restrictedSections: { start: number; end: number }[]) => void;
+  onSave: (content: string) => void;
   isLocked: boolean;
-  restrictedSections?: { start: number; end: number }[];
   onDelete: () => void;
   onClose: () => void;
 }
@@ -23,12 +23,10 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   initialValue,
   onSave,
   isLocked,
-  restrictedSections = [],
   onDelete,
   onClose,
 }) => {
   const [content, setContent] = useState(initialValue);
-  const [sections, setSections] = useState(restrictedSections);
   const [isPreview, setIsPreview] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -44,7 +42,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   };
 
   const handleSave = () => {
-    onSave(content, sections);
+    onSave(content);
   };
 
   const handleMakeSecret = () => {
@@ -53,36 +51,13 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       if (start !== end) {
-        setSections([...sections, { start, end }]);
-        const newContent = 
+        const newContent =
           content.slice(0, start) +
-          `[RESTRICTED]${content.slice(start, end)}[/RESTRICTED]` +
+          `> ! ${content.slice(start, end)}` +
           content.slice(end);
         setContent(newContent);
       }
     }
-  };
-
-  const renderPageContent = (content: string, restrictedSections?: { start: number; end: number }[]): string => {
-    if (!restrictedSections || restrictedSections.length === 0) {
-      return content;
-    }
-
-    let result = '';
-    let lastIndex = 0;
-
-    restrictedSections.forEach(({ start, end }) => {
-      result += content.slice(lastIndex, start);
-      const restrictedContent = content.slice(start, end);
-      result += isLocked
-        ? `<div class="bg-gray-300 text-gray-300 select-none" aria-hidden="true">${'X'.repeat(restrictedContent.length)}</div>`
-        : `<span class="bg-yellow-200">${restrictedContent}</span>`;
-      lastIndex = end;
-    });
-
-    result += content.slice(lastIndex);
-
-    return result;
   };
 
   return (
@@ -121,7 +96,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         </DropdownMenu>
       </div>
       {isPreview ? (
-        <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: renderPageContent(content, sections) }} />
+        <MarkdownPreview content={content} isLocked={isLocked} />
       ) : (
         <textarea
           ref={textareaRef}

@@ -105,7 +105,7 @@ export const WikiSearch: React.FC = () => {
       />
       {isSearchOpen && (
         <div className="flex">
-          <div 
+          <div
             ref={searchResultsRef}
             className="absolute z-10 mt-1 w-1/2 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
           >
@@ -128,7 +128,10 @@ export const WikiSearch: React.FC = () => {
           {previewPage && (
             <div className="absolute z-10 mt-1 left-1/2 w-1/2 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto p-4">
               <h3 className="text-lg font-semibold mb-2">{previewPage.title}</h3>
-              <MarkdownPreview content={renderPageContent(previewPage.content.slice(0, 200) + '...', previewPage.restrictedSections)} />
+              <MarkdownPreview 
+                content={renderPageContent(previewPage.content.slice(0, 200) + '...', previewPage.restrictedSections)} 
+                isLocked={isLocked}
+              />
             </div>
           )}
         </div>
@@ -149,3 +152,5 @@ const fuzzySearch = (str: string, pattern: string): boolean => {
   }
   return j === search.length;
 };
+
+export default WikiSearch;
