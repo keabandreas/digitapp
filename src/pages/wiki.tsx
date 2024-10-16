@@ -20,9 +20,9 @@ const WikiPageContent = () => {
   } = useWikiContext();
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex-shrink-0 p-4 bg-background border-b">
+        <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Wiki Pages</h1>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
@@ -35,19 +35,21 @@ const WikiPageContent = () => {
             </Button>
           </div>
         </div>
-        <WikiSearch />
-        <div className="flex mt-6 h-[calc(100vh-200px)]">
-          <div className={`overflow-y-auto ${selectedPage ? 'w-1/2 pr-4' : 'w-full'}`}>
-            <WikiDirectoryTree />
-          </div>
-          {selectedPage && (
-            <div className="w-1/2 pl-4 border-l overflow-y-auto">
-              <WikiPageView />
-            </div>
-          )}
+        <div className="mt-4">
+          <WikiSearch />
         </div>
-        <AddNewPageDialog isOpen={isAddingPage} onClose={() => setIsAddingPage(false)} />
       </div>
+      <div className="flex-grow flex overflow-hidden">
+        <div className={`overflow-y-auto ${selectedPage ? 'w-1/2' : 'w-full'}`}>
+          <WikiDirectoryTree />
+        </div>
+        {selectedPage && (
+          <div className="w-1/2 border-l overflow-y-auto">
+            <WikiPageView />
+          </div>
+        )}
+      </div>
+      <AddNewPageDialog isOpen={isAddingPage} onClose={() => setIsAddingPage(false)} />
     </div>
   );
 };

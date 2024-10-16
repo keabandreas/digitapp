@@ -10,9 +10,9 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="flex flex-col min-h-screen h-screen w-screen bg-background overflow-hidden">
-      <div className="flex-1 flex overflow-hidden">
-        <main className="flex-1 overflow-auto scrollbar-hide">
+    <div className="flex flex-col w-screen h-screen overflow-hidden bg-background">
+      <div className="flex-grow flex overflow-hidden">
+        <main className="flex-grow overflow-auto scrollbar-hide">
           {children}
         </main>
       </div>
