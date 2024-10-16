@@ -8,15 +8,19 @@ interface LayoutProps {
   children: ReactNode
 }
 
-export default function Layout({ children }: LayoutProps) {
+export default function RootLayout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex-1 relative">
-        <main className="w-full">
-          {children}
-        </main>
-      </div>
-      <FloatingDock />
-    </div>
+    <html lang="en">
+      <body>
+        <div className="flex flex-col min-h-screen h-screen w-screen bg-background overflow-hidden">
+          <div className="flex-1 flex overflow-hidden">
+            <main className="flex-1 overflow-auto">
+              {children}
+            </main>
+          </div>
+          <FloatingDock />
+        </div>
+      </body>
+    </html>
   )
 }

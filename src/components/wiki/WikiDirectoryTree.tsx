@@ -1,26 +1,10 @@
 import React, { useState } from 'react';
 import { ChevronRight, ChevronDown, FileText, Folder, Key, Book, Scroll, Ruler, Rocket, Calendar } from 'lucide-react';
-import { WikiPage } from '../pages/wiki/index';
+import { useWikiContext } from './WikiContext';
+import { wikiConfig } from './WikiConfig.tsx';
 
-interface WikiDirectoryTreeProps {
-  pages: WikiPage[];
-  isLocked: boolean;
-  onSavePage: (updatedPage: WikiPage) => void;
-  onDeletePage: (pageId: number) => void;
-  categories: string[];
-  subCategories: string[];
-  onSelectPage: (page: WikiPage) => void;
-}
-
-export const WikiDirectoryTree: React.FC<WikiDirectoryTreeProps> = ({ 
-  pages, 
-  isLocked, 
-  onSavePage, 
-  onDeletePage,
-  categories,
-  subCategories,
-  onSelectPage
-}) => {
+export const WikiDirectoryTree: React.FC = () => {
+  const { pages, isLocked, setSelectedPage } = useWikiContext();
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
 
   const toggleCategory = (category: string) => {
@@ -53,7 +37,7 @@ export const WikiDirectoryTree: React.FC<WikiDirectoryTreeProps> = ({
 
   return (
     <div className="space-y-4">
-      {Object.entries(groupedPages).map(([category, categoryPages]) => (
+      {wikiConfig.categories.map((category) => (
         <div key={category} className="border rounded-lg p-2">
           <div
             className="flex items-center cursor-pointer"
@@ -63,13 +47,13 @@ export const WikiDirectoryTree: React.FC<WikiDirectoryTreeProps> = ({
             <Folder className="mr-2" />
             <span className="font-semibold">{category}</span>
           </div>
-          {expandedCategories.includes(category) && (
+          {expandedCategories.includes(category) && groupedPages[category] && (
             <div className="mt-2 space-y-2">
-              {categoryPages.map(page => (
+              {groupedPages[category].map(page => (
                 <div
                   key={page.id}
                   className="flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded border"
-                  onClick={() => onSelectPage(page)}
+                  onClick={() => setSelectedPage(page)}
                 >
                   <div className="flex items-center">
                     <FileText className="mr-2" size={16} />

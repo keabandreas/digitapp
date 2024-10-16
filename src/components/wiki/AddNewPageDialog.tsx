@@ -5,32 +5,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { WikiPage } from '@/pages/wiki';
+import { useWikiContext } from './WikiContext';
+import { wikiConfig } from './WikiConfig.tsx';
 
 interface AddNewPageDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddPage: (newPage: Omit<WikiPage, 'id'>) => void;
-  categories: string[];
-  subCategories: string[];
 }
 
 export const AddNewPageDialog: React.FC<AddNewPageDialogProps> = ({
   isOpen,
   onClose,
-  onAddPage,
-  categories,
-  subCategories,
 }) => {
+  const { handleAddPage } = useWikiContext();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
   const [subCategory, setSubCategory] = useState('');
   const [isRestricted, setIsRestricted] = useState(false);
 
+  const { categories, subCategories } = wikiConfig;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newPage: Omit<WikiPage, 'id'> = {
+    const newPage = {
       title,
       content,
       excerpt: content.slice(0, 100) + '...',
@@ -38,8 +36,9 @@ export const AddNewPageDialog: React.FC<AddNewPageDialogProps> = ({
       subCategory,
       restricted: isRestricted,
     };
-    onAddPage(newPage);
+    handleAddPage(newPage);
     resetForm();
+    onClose();
   };
 
   const resetForm = () => {
