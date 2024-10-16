@@ -1,14 +1,18 @@
+import React from 'react'
 import Head from 'next/head'
-import Layout from '@/components/Layout'
 
-export default function Home() {
+export default function Dashboard() {
   return (
-    <Layout>
-    <Head>
-    </Head>
-      <main>
-        {/* Rest of your page content */}
-      </main>
-    </Layout>
+    <>
+      <Head>
+        <title>Dashboard | Your App Name</title>
+        <meta name="description" content="Welcome to your dashboard" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
+        <main className="flex-1 overflow-auto p-6">
+        </main>
+      </div>
+    </>
   )
 }

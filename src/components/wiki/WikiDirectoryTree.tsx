@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronRight, ChevronDown, FileText, Folder, Key, Book, Scroll, Ruler, Rocket, Calendar } from 'lucide-react';
-import { useWikiContext } from './WikiContext';
-import { wikiConfig } from './WikiConfig.tsx';
+import { useWikiContext, WikiPage } from './WikiContext';
+import { wikiConfig } from './WikiConfig';
 
 export const WikiDirectoryTree: React.FC = () => {
   const { pages, isLocked, setSelectedPage } = useWikiContext();

@@ -4,8 +4,11 @@ import React, { useState } from 'react'
 import CsvManager from './CsvManager'
 import { Button } from '@/components/ui/button'
 
+// Define the allowed modes as a union type
+type CsvManagerMode = 'view' | 'add' | 'remove'
+
 export default function CsvStatisticsPage() {
-  const [mode, setMode] = useState('view')
+  const [mode, setMode] = useState<CsvManagerMode>('view')
 
   const handleComplete = () => {
     setMode('view')
@@ -18,16 +21,16 @@ export default function CsvStatisticsPage() {
   return (
     <div className="container mx-auto p-4 space-y-4">
       <h1 className="text-2xl font-bold mb-4">CSV Statistics</h1>
-      
+
       <div className="flex space-x-2 mb-4">
         <Button onClick={() => setMode('add')}>Add Row</Button>
         <Button onClick={() => setMode('remove')}>Remove Row</Button>
       </div>
 
-      <CsvManager 
-        mode={mode} 
-        onComplete={handleComplete} 
-        onCancel={handleCancel} 
+      <CsvManager
+        mode={mode}
+        onComplete={handleComplete}
+        onCancel={handleCancel}
       />
     </div>
   )
