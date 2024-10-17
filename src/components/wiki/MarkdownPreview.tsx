@@ -1,60 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { useWikiContext } from './WikiContext';
 
 interface MarkdownPreviewProps {
   content: string;
-  isLocked: boolean;
+  isRestricted: boolean;
 }
 
-const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, isLocked }) => {
-  const [revealedSpoilers, setRevealedSpoilers] = useState<Set<number>>(new Set());
+const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, isRestricted }) => {
+  const { isLocked } = useWikiContext();
 
-  const toggleSpoiler = (index: number) => {
-    if (!isLocked) {
-      setRevealedSpoilers(prev => {
-        const newSet = new Set(prev);
-        if (newSet.has(index)) {
-          newSet.delete(index);
-        } else {
-          newSet.add(index);
-        }
-        return newSet;
-      });
-    }
-  };
-
-  const processContent = (content: string) => {
-    const lines = content.split('\n');
-    return lines.map((line, index) => {
-      if (line.startsWith('! ')) {
-        const spoilerContent = line.slice(2);
-        const isRevealed = revealedSpoilers.has(index);
-
-        return (
-          <div
-            key={index}
-            className={`cursor-pointer p-2 rounded ${isLocked ? 'bg-gray-300' : 'bg-yellow-200'}`}
-            onClick={() => toggleSpoiler(index)}
-          >
-            {isLocked ? (
-              <span className="select-none">REDACTED</span>
-            ) : (
-              isRevealed ? spoilerContent : '[Click to reveal]'
-            )}
-          </div>
-        );
-      }
-      return line;
-    }).join('\n');
-  };
+  if (isLocked && isRestricted) {
+    return <div className="text-gray-500">This content is restricted.</div>;
+  }
 
   return (
-    <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
-    >
-      {processContent(content)}
-    </ReactMarkdown>
+    <div className="prose max-w-none">
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
   );
 };
 

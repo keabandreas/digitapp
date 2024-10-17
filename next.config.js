@@ -2,8 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  images: {
-    domains: ['images.unsplash.com', 'images.pexels.com'],
+  typescript: {
+    ignoreBuildErrors: false,
   },
   swcMinify: true,
   webpack: (config, { isServer }) => {

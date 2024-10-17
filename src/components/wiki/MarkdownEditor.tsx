@@ -1,21 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ChevronDown, Eye, Save, Lock, Trash2, X } from "lucide-react";
-import MarkdownPreview from './MarkdownPreview'; // Add this import
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { ChevronDown, Eye, Save, X } from "lucide-react";
 
 interface MarkdownEditorProps {
   initialValue: string;
   onSave: (content: string) => void;
   isLocked: boolean;
-  onDelete: () => void;
+  isRestricted: boolean;
   onClose: () => void;
 }
 
@@ -23,19 +15,11 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   initialValue,
   onSave,
   isLocked,
-  onDelete,
+  isRestricted,
   onClose,
 }) => {
   const [content, setContent] = useState(initialValue);
   const [isPreview, setIsPreview] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-    }
-  }, [content]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
@@ -43,21 +27,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
   const handleSave = () => {
     onSave(content);
-  };
-
-  const handleMakeSecret = () => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      if (start !== end) {
-        const newContent =
-          content.slice(0, start) +
-          `> ! ${content.slice(start, end)}` +
-          content.slice(end);
-        setContent(newContent);
-      }
-    }
   };
 
   return (
@@ -79,15 +48,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               <Save className="mr-2 h-4 w-4" />
               Save
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleMakeSecret}>
-              <Lock className="mr-2 h-4 w-4" />
-              Make Secret
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onDelete}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={onClose}>
               <X className="mr-2 h-4 w-4" />
               Close
@@ -96,10 +56,11 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         </DropdownMenu>
       </div>
       {isPreview ? (
-        <MarkdownPreview content={content} isLocked={isLocked} />
+        <div className="prose max-w-none">
+          {isLocked && isRestricted ? 'This content is restricted.' : content}
+        </div>
       ) : (
         <textarea
-          ref={textareaRef}
           value={content}
           onChange={handleChange}
           className="w-full min-h-[300px] p-2 border rounded"

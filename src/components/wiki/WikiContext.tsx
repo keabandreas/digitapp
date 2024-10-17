@@ -10,7 +10,6 @@ export interface WikiPage {
   category: string;
   subCategory: string;
   isRestricted: boolean;
-  restrictedSections?: { start: number; end: number }[];
 }
 
 interface WikiContextType {
@@ -42,7 +41,7 @@ export const WikiProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const loadPages = async () => {
       try {
-        const response = await fetch('/api/wiki/pages');
+        const response = await fetch('/api/wiki');
         if (response.ok) {
           const loadedPages = await response.json();
           setPages(loadedPages);
@@ -88,7 +87,7 @@ export const WikiProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleSavePage = async (updatedPage: WikiPage) => {
     try {
-      const response = await fetch(`/api/wiki/pages/${updatedPage.id}`, {
+      const response = await fetch(`/api/wiki/${updatedPage.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +108,7 @@ export const WikiProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleDeletePage = async (pageId: string) => {
     try {
-      const response = await fetch(`/api/wiki/pages/${pageId}`, {
+      const response = await fetch(`/api/wiki/${pageId}`, {
         method: 'DELETE',
       });
 
@@ -126,7 +125,7 @@ export const WikiProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleAddPage = async (newPage: Omit<WikiPage, 'id'>) => {
     try {
-      const response = await fetch('/api/wiki/pages', {
+      const response = await fetch('/api/wiki', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,7 +134,7 @@ export const WikiProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (response.ok) {
-        const createdPage = await response.json();
+        const createdPage: WikiPage = await response.json();
         setPages(prevPages => [...prevPages, createdPage]);
         setIsAddingPage(false);
       } else {
@@ -146,7 +145,7 @@ export const WikiProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const value = {
+  const value: WikiContextType = {
     pages,
     setPages,
     selectedPage,

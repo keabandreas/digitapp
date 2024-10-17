@@ -1,33 +1,16 @@
 import React, { useState } from 'react';
 import { useWikiContext } from './WikiContext';
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ChevronDown, Eye, Edit, Trash2, X } from "lucide-react";
-import dynamic from 'next/dynamic';
-
-const MarkdownEditor = dynamic(() => import('./MarkdownEditor'), { ssr: false });
-const MarkdownPreview = dynamic(() => import('./MarkdownPreview'), { ssr: false });
+import MarkdownEditor from './MarkdownEditor';
+import MarkdownPreview from './MarkdownPreview';
 
 export const WikiPageView: React.FC = () => {
   const { selectedPage, isLocked, handleSavePage, handleDeletePage, setSelectedPage } = useWikiContext();
   const [isEditing, setIsEditing] = useState(false);
 
   if (!selectedPage) return null;
-
-  if (isLocked && selectedPage.isRestricted) {
-    return (
-      <div className="p-4 bg-gray-100 rounded">
-        <p>This page is restricted. Please unlock the wiki to view its contents.</p>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -62,11 +45,11 @@ export const WikiPageView: React.FC = () => {
           initialValue={selectedPage.content}
           onSave={(content) => handleSavePage({ ...selectedPage, content })}
           isLocked={isLocked}
-          onDelete={() => handleDeletePage(selectedPage.id)}
-          onClose={() => setSelectedPage(null)}
+          isRestricted={selectedPage.isRestricted}
+          onClose={() => setIsEditing(false)}
         />
       ) : (
-        <MarkdownPreview content={selectedPage.content} isLocked={isLocked} />
+        <MarkdownPreview content={selectedPage.content} isRestricted={selectedPage.isRestricted} />
       )}
     </>
   );

@@ -40,6 +40,7 @@ export const AddNewPageDialog: React.FC<AddNewPageDialogProps> = ({ isOpen, onCl
       category,
       subCategory,
       isRestricted,
+      restrictedSections: [], // Add this line to include the restrictedSections property
     };
     handleAddPage(newPage);
     resetForm();
