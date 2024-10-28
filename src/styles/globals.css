@@ -2,41 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import markdown editor styles */
+@import '@uiw/react-md-editor/markdown-editor.css';
+@import '@uiw/react-markdown-preview/markdown.css';
+@import 'react-mde/lib/styles/css/react-mde-all.css';
+
 /* Existing styles (if any) */
-
-/* Aurora Background styles */
-.aurora-background {
-  position: relative;
-  overflow: hidden;
-}
-
-.aurora-background::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle at center,
-    rgba(96, 165, 250, 0.3) 0%,
-    rgba(232, 121, 249, 0.3) 25%,
-    rgba(94, 234, 212, 0.3) 50%,
-    rgba(96, 165, 250, 0.3) 75%
-  );
-  animation: aurora 20s linear infinite;
-  opacity: 0.5;
-  z-index: -1;
-}
-
-@keyframes aurora {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
 
 /* Add styles for dialog select options */
 .select-content {
@@ -54,6 +25,78 @@
 
 .select-item[data-state="checked"] {
   @apply bg-primary text-primary-foreground;
+}
+
+/* Add this to your global CSS file */
+::selection {
+  background-color: rgba(59, 130, 246, 0.5); /* Adjust color as needed */
+}
+
+*::selection {
+  background-color: rgba(59, 130, 246, 0.5); /* Adjust color as needed */
+}
+
+/* Override ReactMde styles to match your theme */
+.mde-header {
+  @apply bg-background border-b border-border;
+}
+
+.mde-header .mde-tabs button {
+  @apply text-foreground;
+}
+
+.mde-header .mde-tabs button.selected {
+  @apply bg-primary text-primary-foreground;
+}
+
+.mde-text {
+  @apply bg-background text-foreground;
+}
+
+.mde-preview {
+  @apply bg-background text-foreground;
+}
+
+/* Override markdown preview styles */
+.wmde-markdown {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+.wmde-markdown-var {
+  --color-canvas-default: hsl(var(--background));
+  --color-fg-default: hsl(var(--foreground));
+  --color-border-default: hsl(var(--border));
+  --color-prettylights-syntax-comment: hsl(var(--muted-foreground));
+  --color-prettylights-syntax-constant: hsl(var(--primary));
+  --color-prettylights-syntax-entity: hsl(var(--primary));
+  --color-prettylights-syntax-storage-modifier-import: hsl(var(--foreground));
+  --color-prettylights-syntax-entity-tag: hsl(var(--primary));
+  --color-prettylights-syntax-keyword: hsl(var(--primary));
+  --color-prettylights-syntax-string: hsl(var(--secondary));
+  --color-prettylights-syntax-variable: hsl(var(--secondary));
+  --color-prettylights-syntax-brackethighlighter-unmatched: hsl(var(--destructive));
+  --color-prettylights-syntax-invalid-illegal-text: hsl(var(--destructive));
+  --color-prettylights-syntax-invalid-illegal-bg: hsl(var(--background));
+  --color-prettylights-syntax-carriage-return-text: hsl(var(--background));
+  --color-prettylights-syntax-carriage-return-bg: hsl(var(--primary));
+  --color-prettylights-syntax-string-regexp: hsl(var(--secondary));
+  --color-prettylights-syntax-markup-list: hsl(var(--foreground));
+  --color-prettylights-syntax-markup-heading: hsl(var(--primary));
+  --color-prettylights-syntax-markup-italic: hsl(var(--foreground));
+  --color-prettylights-syntax-markup-bold: hsl(var(--foreground));
+  --color-prettylights-syntax-markup-deleted-text: hsl(var(--destructive));
+  --color-prettylights-syntax-markup-deleted-bg: hsl(var(--background));
+  --color-prettylights-syntax-markup-inserted-text: hsl(var(--secondary));
+  --color-prettylights-syntax-markup-inserted-bg: hsl(var(--background));
+  --color-prettylights-syntax-markup-changed-text: hsl(var(--warning));
+  --color-prettylights-syntax-markup-changed-bg: hsl(var(--background));
+  --color-prettylights-syntax-markup-ignored-text: hsl(var(--muted));
+  --color-prettylights-syntax-markup-ignored-bg: hsl(var(--primary));
+  --color-prettylights-syntax-meta-diff-range: hsl(var(--primary));
+  --color-prettylights-syntax-brackethighlighter-angle: hsl(var(--foreground));
+  --color-prettylights-syntax-sublimelinter-gutter-mark: hsl(var(--muted-foreground));
+  --color-prettylights-syntax-constant-other-reference-link: hsl(var(--secondary));
 }
 
 /* Add any other custom styles below */

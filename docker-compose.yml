@@ -8,6 +8,15 @@ services:
       - .:/app
       - /app/node_modules
       - /app/.next
+      - ./wiki.sqlite:/app/wiki.sqlite
+      - ./prisma:/app/prisma
     environment:
       - NODE_ENV=development
+      - DATABASE_URL=file:/app/prisma/dev.db
     command: npm run dev
+
+  tailwind:
+    build: .
+    volumes:
+      - .:/app
+    command: npx tailwindcss -i ./src/styles/globals.css -o ./src/styles/output.css --watch

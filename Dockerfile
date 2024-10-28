@@ -10,11 +10,24 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
+# Install Tailwind CSS CLI globally
+RUN npm install -g tailwindcss
+
 # Copy the rest of the application code
 COPY . .
+
+# Copy .env.local and load-env.js files
+COPY .env.local .env.local
+COPY load-env.js load-env.js
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Build Tailwind CSS
+RUN npx tailwindcss -i ./src/styles/globals.css -o ./src/styles/output.css
 
 # Expose the port the app runs on
 EXPOSE 8080
 
-# Command to run the app in development mode
-CMD ["npm", "run", "dev"]
+# Command to run the app in development mode and watch for Tailwind changes
+CMD ["sh", "-c", "npx tailwindcss -i ./src/styles/globals.css -o ./src/styles/output.css --watch & npm run dev"]
