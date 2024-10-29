@@ -3,8 +3,10 @@ import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { IconTrash, IconPencil, IconPlus } from '@tabler/icons-react';
+import { IconTrash, IconPencil, IconPlus, IconX } from '@tabler/icons-react';
 import { CsvForm } from '@/components/ui/csv-form';
+
+export { CsvManager };
 
 interface CsvRow {
   [key: string]: string;
@@ -40,9 +42,9 @@ const fetcher = async (url: string) => {
   }
 };
 
-const CsvTable: React.FC<CsvTableProps> = React.memo(({ 
-  data, 
-  onDeleteRow, 
+const CsvTable: React.FC<CsvTableProps> = React.memo(({
+  data,
+  onDeleteRow,
   onEditClick,
   onAddClick,
   isDeleting
@@ -62,7 +64,7 @@ const CsvTable: React.FC<CsvTableProps> = React.memo(({
         </TableHeader>
         <TableBody>
           {data.map((row, index) => (
-            <TableRow key={index} className="hover:bg-gray-100">
+            <TableRow key={index} className="hover:bg-gray-100 dark:hover:bg-neutral-800">
               {headers.map(header => (
                 <TableCell key={header} className="px-4 py-2 whitespace-nowrap">
                   {row[header]}
@@ -73,7 +75,7 @@ const CsvTable: React.FC<CsvTableProps> = React.memo(({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-100"
+                    className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900"
                     onClick={() => onEditClick(row)}
                   >
                     <IconPencil className="h-4 w-4" />
@@ -81,7 +83,7 @@ const CsvTable: React.FC<CsvTableProps> = React.memo(({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-100"
+                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
                     onClick={() => onDeleteRow(index)}
                     disabled={isDeleting === index}
                   >
@@ -91,12 +93,12 @@ const CsvTable: React.FC<CsvTableProps> = React.memo(({
               </TableCell>
             </TableRow>
           ))}
-          <TableRow className="hover:bg-gray-50">
+          <TableRow className="hover:bg-gray-50 dark:hover:bg-neutral-800">
             <TableCell colSpan={headers.length + 1} className="px-4 py-2 text-center">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-green-500 hover:text-green-700 hover:bg-green-100"
+                className="h-8 w-8 text-green-500 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900"
                 onClick={onAddClick}
               >
                 <IconPlus className="h-4 w-4" />
@@ -128,6 +130,10 @@ const CsvManager: React.FC<CsvManagerProps> = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'add' | 'edit'>('add');
   const [editingData, setEditingData] = useState<CsvRow | undefined>();
+
+  const handleClose = () => {
+    window.history.back();
+  };
 
   const handleAddClick = useCallback(() => {
     if (csvData && csvData.length > 0) {
@@ -165,7 +171,7 @@ const CsvManager: React.FC<CsvManagerProps> = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            index: csvData?.findIndex(row => 
+            index: csvData?.findIndex(row =>
               Object.entries(row).every(([key, value]) => editingData?.[key] === value)
             ),
             data: formData,
@@ -193,9 +199,9 @@ const CsvManager: React.FC<CsvManagerProps> = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ index: index + 1 }),
       });
-      
+
       if (!response.ok) throw new Error(await response.text());
-      
+
       await mutate();
       toast.success('Entry removed successfully');
     } catch (error) {
@@ -206,18 +212,61 @@ const CsvManager: React.FC<CsvManagerProps> = () => {
     }
   };
 
-  if (error) return <div>Failed to load data</div>;
-  if (!csvData) return <div>Loading...</div>;
+  if (error) return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="text-red-500">Failed to load data</div>
+    </div>
+  );
+  
+  if (!csvData) return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="text-neutral-500">Loading...</div>
+    </div>
+  );
 
   return (
-    <div className="space-y-4">
-      <CsvTable 
-        data={csvData}
-        onDeleteRow={removeRow}
-        onEditClick={handleEditClick}
-        onAddClick={handleAddClick}
-        isDeleting={deletingRow}
+    <div className="fixed inset-0 z-50">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+        onClick={handleClose}
       />
+      
+      {/* Modal Window */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+        <div className="relative w-full max-w-5xl">
+          {/* Background effects */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-[22px] blur-xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/80 to-white/50 dark:from-black/80 dark:to-black/50 rounded-[22px]" />
+          
+          {/* Content */}
+          <div className="relative bg-white/80 dark:bg-black/80 backdrop-blur-sm rounded-[22px] shadow-2xl border border-white/20 dark:border-black/20">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">
+                  Training Data Management
+                </h1>
+                <button
+                  onClick={handleClose}
+                  className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
+                >
+                  <IconX className="w-5 h-5 text-neutral-500" />
+                </button>
+              </div>
+              
+              <div className="bg-white dark:bg-black rounded-lg shadow-sm overflow-hidden">
+                <CsvTable
+                  data={csvData}
+                  onDeleteRow={removeRow}
+                  onEditClick={handleEditClick}
+                  onAddClick={handleAddClick}
+                  isDeleting={deletingRow}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <CsvForm
         isOpen={isFormOpen}
@@ -232,5 +281,3 @@ const CsvManager: React.FC<CsvManagerProps> = () => {
     </div>
   );
 };
-
-export default CsvManager;

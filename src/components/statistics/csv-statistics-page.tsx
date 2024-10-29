@@ -43,8 +43,6 @@ export function CsvStatisticsPage() {
             </div>
           </BackgroundGradient>
         </div>
-
-        {/* Add more statistics cards here in the future */}
       </div>
     </div>
   );
