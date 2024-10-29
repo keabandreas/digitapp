@@ -7,6 +7,17 @@
 @import '@uiw/react-markdown-preview/markdown.css';
 @import 'react-mde/lib/styles/css/react-mde-all.css';
 
+:root {
+  --blue-500: rgb(59, 130, 246);
+  --purple-500: rgb(168, 85, 247);
+}
+
+@layer utilities {
+  .shadow-input {
+    @apply shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)] dark:shadow-[0px_0px_0px_1px_rgba(255,255,255,0.1)]
+  }
+}
+
 /* Existing styles (if any) */
 
 /* Add styles for dialog select options */

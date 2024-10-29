@@ -22,11 +22,6 @@ export default function CsvStatisticsPage() {
     <div className="container mx-auto p-4 space-y-4">
       <h1 className="text-2xl font-bold mb-4">CSV Statistics</h1>
 
-      <div className="flex space-x-2 mb-4">
-        <Button onClick={() => setMode('add')}>Add Row</Button>
-        <Button onClick={() => setMode('remove')}>Remove Row</Button>
-      </div>
-
       <CsvManager
         mode={mode}
         onComplete={handleComplete}

@@ -13,10 +13,32 @@ services:
     environment:
       - NODE_ENV=development
       - DATABASE_URL=file:/app/prisma/dev.db
+      - NEXT_PUBLIC_SCRIPT_SERVER_URL=http://node:5000
     command: npm run dev
+    networks:
+      - app-network
 
   tailwind:
     build: .
     volumes:
       - .:/app
     command: npx tailwindcss -i ./src/styles/globals.css -o ./src/styles/output.css --watch
+
+  node:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    volumes:
+      - ${HOME}/karlshamn-energi-training/completions.csv:/app/completions.csv
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - CSV_PATH=/app/completions.csv
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

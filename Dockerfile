@@ -26,8 +26,8 @@ RUN npx prisma generate
 # Build Tailwind CSS
 RUN npx tailwindcss -i ./src/styles/globals.css -o ./src/styles/output.css
 
-# Expose the port the app runs on
-EXPOSE 8080
+# Expose the ports the app and script server run on
+EXPOSE 8080 5000
 
 # Command to run the app in development mode and watch for Tailwind changes
 CMD ["sh", "-c", "npx tailwindcss -i ./src/styles/globals.css -o ./src/styles/output.css --watch & npm run dev"]

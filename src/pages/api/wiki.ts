@@ -25,24 +25,68 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } else if (req.method === 'POST') {
     const { title, content, restricted, category } = req.body
-    const document = await prisma.document.create({
-      data: { title, content, restricted, category },
-    })
-    res.status(201).json(document)
+
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required' })
+    }
+
+    try {
+      const document = await prisma.document.create({
+        data: {
+          title,
+          content: content || '',
+          restricted: restricted || false,
+          category: category || 'General',
+        },
+      })
+      res.status(201).json(document)
+    } catch (error) {
+      console.error('Error creating document:', error)
+      res.status(500).json({ error: 'Error creating document' })
+    }
   } else if (req.method === 'PUT') {
     const { title, content, restricted, category } = req.body
-    const document = await prisma.document.update({
-      where: { id: parseInt(id as string) },
-      data: { title, content, restricted, category },
-    })
-    res.status(200).json(document)
+
+    if (!id) {
+      return res.status(400).json({ error: 'Document ID is required' })
+    }
+
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required' })
+    }
+
+    try {
+      const document = await prisma.document.update({
+        where: { id: parseInt(id as string) },
+        data: {
+          title,
+          content: content || '',
+          restricted: restricted || false,
+          category: category || 'General',
+        },
+      })
+      res.status(200).json(document)
+    } catch (error) {
+      console.error('Error updating document:', error)
+      res.status(500).json({ error: 'Error updating document' })
+    }
   } else if (req.method === 'PATCH') {
     const { restricted } = req.body
-    const document = await prisma.document.update({
-      where: { id: parseInt(id as string) },
-      data: { restricted },
-    })
-    res.status(200).json(document)
+
+    if (!id) {
+      return res.status(400).json({ error: 'Document ID is required' })
+    }
+
+    try {
+      const document = await prisma.document.update({
+        where: { id: parseInt(id as string) },
+        data: { restricted },
+      })
+      res.status(200).json(document)
+    } catch (error) {
+      console.error('Error updating document:', error)
+      res.status(500).json({ error: 'Error updating document' })
+    }
   } else if (req.method === 'DELETE') {
     if (id) {
       try {

@@ -1,3 +1,4 @@
+// pages/api/edit-csv-row.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -6,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const response = await fetch('http://node:5000/api/remove-csv-row', {
+    const response = await fetch('http://node:5000/api/edit-csv-row', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -23,6 +24,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).json(data);
   } catch (error) {
     console.error('API route error:', error);
-    res.status(500).json({ error: 'Failed to remove CSV row' });
+    res.status(500).json({ error: 'Failed to edit CSV row' });
   }
 }

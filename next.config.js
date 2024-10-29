@@ -4,7 +4,7 @@ const nextConfig = {
   transpilePackages: ['@uiw/react-markdown-preview', 'react-markdown', 'react-syntax-highlighter'],
   experimental: {
     serverActions: {
-      allowedOrigins: ['localhost:8080'],
+      allowedOrigins: ['localhost:8080', 'localhost:5000'],
     },
   },
   webpack: (config, { isServer }) => {
@@ -20,7 +20,7 @@ const nextConfig = {
     });
     config.externals.push('_http_common');
     return config;
-  },
+  }
 }
 
 module.exports = nextConfig

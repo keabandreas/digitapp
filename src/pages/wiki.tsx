@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import AddDocument from '@/components/ui/AddDocument'
 import { FileUpload } from '@/components/ui/FileUpload'
+import { toast } from 'react-hot-toast'
 
 const MarkdownEditor = dynamic(() => import('@/components/MarkdownEditor'), { ssr: false })
 
@@ -104,49 +105,40 @@ export default function WikiPage() {
     }
   }, [])
 
-  const handleCreateDocument = useCallback(async (title: string, category: string, restricted: boolean) => {
+  const handleCreateDocument = useCallback(async (title: string, category: string, restricted: boolean, content: string = '') => {
     try {
       const response = await fetch('/api/wiki', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, category, restricted, content: '' }),
+        body: JSON.stringify({ title, category, restricted, content }),
       })
       if (response.ok) {
+        const newDocument = await response.json()
         await fetchDocuments()
         setIsAddDocumentOpen(false)
+        setSelectedDocument(newDocument)
+        toast.success('Document created successfully')
       } else {
         console.error('Failed to create document')
+        toast.error('Failed to create document')
       }
     } catch (error) {
       console.error('Error creating document:', error)
+      toast.error('Error creating document')
     }
   }, [fetchDocuments])
 
-  const handleFileUpload = useCallback(async (files: File[]) => {
-    if (files.length === 0) return;
-
-    const file = files[0];
-    const formData = new FormData()
-    formData.append('file', file)
-
+  const handleFileProcessed = useCallback(async (data: { title: string, content: string, category: string, restricted: boolean }) => {
     try {
-      const response = await fetch('/api/convert-docx', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (response.ok) {
-        const { title, content } = await response.json()
-        await handleCreateDocument(title, 'General', false)
-        setIsUploadDialogOpen(false)
-        fetchDocuments()
-      } else {
-        console.error('Failed to convert file')
-      }
+      const newDocument = await handleCreateDocument(data.title, data.category, data.restricted, data.content)
+      setIsUploadDialogOpen(false)
+      setSelectedDocument(newDocument)
+      fetchDocuments()
     } catch (error) {
-      console.error('Error uploading file:', error)
+      console.error('Error processing file:', error)
+      toast.error('Error processing file')
     }
-  }, [fetchDocuments, handleCreateDocument])
+  }, [handleCreateDocument, fetchDocuments])
 
   const handleEditDocument = useCallback((id: number) => {
     const document = documents.find(doc => doc.id === id)
@@ -167,11 +159,14 @@ export default function WikiPage() {
           setSelectedDocument(null)
           setIsEditing(false)
         }
+        toast.success('Document deleted successfully')
       } else {
         console.error('Failed to delete document')
+        toast.error('Failed to delete document')
       }
     } catch (error) {
       console.error('Error deleting document:', error)
+      toast.error('Error deleting document')
     }
   }, [selectedDocument])
 
@@ -230,7 +225,7 @@ export default function WikiPage() {
                       handleDocumentUpdate(selectedDocument.id, title, content)
                       setIsEditing(false)
                     }}
-                    onCancel={() => setIsEditing(false)}
+                    onCancel={handleCancelEdit}
                   />
                 </div>
               ) : (
@@ -275,7 +270,7 @@ export default function WikiPage() {
           <DialogHeader>
             <DialogTitle>Upload Word Document</DialogTitle>
           </DialogHeader>
-          <FileUpload onChange={handleFileUpload} />
+          <FileUpload onFileProcessed={handleFileProcessed} />
         </DialogContent>
       </Dialog>
     </div>

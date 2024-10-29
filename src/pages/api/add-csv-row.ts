@@ -1,20 +1,28 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import fs from 'fs'
-import path from 'path'
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const csvFilePath = path.join(process.cwd(), 'completions.csv')
-  const newRow = Object.values(req.body).join(',') + '\n'
+  try {
+    const response = await fetch('http://node:5000/api/add-csv-row', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(req.body),
+    });
 
-  fs.appendFile(csvFilePath, newRow, (err) => {
-    if (err) {
-      console.error('Error appending to file:', err)
-      return res.status(500).json({ error: 'Error adding row to CSV' })
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText);
     }
-    res.status(200).json({ message: 'Row added successfully' })
-  })
+
+    const data = await response.json();
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('API route error:', error);
+    res.status(500).json({ error: 'Failed to add CSV row' });
+  }
 }

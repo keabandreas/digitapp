@@ -1,15 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import fs from 'fs'
-import path from 'path'
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const csvFilePath = path.join(process.cwd(), 'completions.csv')
-
-  fs.readFile(csvFilePath, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error reading file:', err)
-      return res.status(500).json({ error: 'Error reading file' })
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const response = await fetch('http://node:5000/api/keab-training-data')
+    const data = await response.text()
+    
+    if (!response.ok) {
+      throw new Error(`Node server responded with status: ${response.status}`)
     }
+    
     res.status(200).send(data)
-  })
+  } catch (error) {
+    console.error('API route error:', error)
+    res.status(500).json({ error: 'Failed to fetch CSV data' })
+  }
 }
