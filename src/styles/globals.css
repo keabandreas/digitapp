@@ -2,112 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import markdown editor styles */
-@import '@uiw/react-md-editor/markdown-editor.css';
-@import '@uiw/react-markdown-preview/markdown.css';
-@import 'react-mde/lib/styles/css/react-mde-all.css';
-
-:root {
-  --blue-500: rgb(59, 130, 246);
-  --purple-500: rgb(168, 85, 247);
-}
-
-@layer utilities {
-  .shadow-input {
-    @apply shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)] dark:shadow-[0px_0px_0px_1px_rgba(255,255,255,0.1)]
+@layer base {
+  :root {
+    /* Nord Light Theme Variables */
+    --background: 218 27% 94%;
+    --foreground: 220 16% 22%;
+    --card: 218 27% 94%;
+    --card-foreground: 220 16% 22%;
+    --popover: 218 27% 94%;
+    --popover-foreground: 220 16% 22%;
+    --primary: 213 32% 52%; /* Nord blue */
+    --primary-foreground: 218 27% 94%;
+    --secondary: 220 16% 90%; /* Nord frost */
+    --secondary-foreground: 220 16% 22%;
+    --muted: 220 16% 90%;
+    --muted-foreground: 220 16% 40%;
+    --accent: 213 32% 52%; /* Nord red */
+    --accent-foreground: 220 16% 22%;
+    --destructive: 354 42% 56%;
+    --destructive-foreground: 218 27% 94%;
+    --border: 220 16% 86%;
+    --input: 220 16% 86%;
+    --ring: 213 32% 52%;
+    --radius: 0.5rem;
   }
 }
 
-/* Existing styles (if any) */
-
-/* Add styles for dialog select options */
-.select-content {
-  @apply bg-background text-foreground !important;
+@layer base {
+  .dark {
+    --background: 220 16% 22%;
+    --foreground: 218 27% 94%;
+    --card: 220 16% 22%;
+    --card-foreground: 218 27% 94%;
+    --popover: 220 16% 22%;
+    --popover-foreground: 218 27% 94%;
+    --primary: 193 43% 67%;
+    --primary-foreground: 220 16% 22%;
+    --secondary: 220 16% 28%;
+    --secondary-foreground: 218 27% 94%;
+    --muted: 220 16% 28%;
+    --muted-foreground: 218 27% 80%;
+    --accent: 213 32% 52%;
+    --accent-foreground: 218 27% 94%;
+    --destructive: 354 42% 56%;
+    --destructive-foreground: 218 27% 94%;
+    --border: 220 16% 28%;
+    --input: 220 16% 28%;
+    --ring: 193 43% 67%;
+    --green: 150 23% 53%;
+  }
 }
 
-/* Add hover and selected states for select options */
-.select-item {
-  @apply relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50;
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
 }
-
-.select-item:hover {
-  @apply bg-accent;
-}
-
-.select-item[data-state="checked"] {
-  @apply bg-primary text-primary-foreground;
-}
-
-/* Add this to your global CSS file */
-::selection {
-  background-color: rgba(59, 130, 246, 0.5); /* Adjust color as needed */
-}
-
-*::selection {
-  background-color: rgba(59, 130, 246, 0.5); /* Adjust color as needed */
-}
-
-/* Override ReactMde styles to match your theme */
-.mde-header {
-  @apply bg-background border-b border-border;
-}
-
-.mde-header .mde-tabs button {
-  @apply text-foreground;
-}
-
-.mde-header .mde-tabs button.selected {
-  @apply bg-primary text-primary-foreground;
-}
-
-.mde-text {
-  @apply bg-background text-foreground;
-}
-
-.mde-preview {
-  @apply bg-background text-foreground;
-}
-
-/* Override markdown preview styles */
-.wmde-markdown {
-  background-color: transparent !important;
-  color: inherit !important;
-}
-
-.wmde-markdown-var {
-  --color-canvas-default: hsl(var(--background));
-  --color-fg-default: hsl(var(--foreground));
-  --color-border-default: hsl(var(--border));
-  --color-prettylights-syntax-comment: hsl(var(--muted-foreground));
-  --color-prettylights-syntax-constant: hsl(var(--primary));
-  --color-prettylights-syntax-entity: hsl(var(--primary));
-  --color-prettylights-syntax-storage-modifier-import: hsl(var(--foreground));
-  --color-prettylights-syntax-entity-tag: hsl(var(--primary));
-  --color-prettylights-syntax-keyword: hsl(var(--primary));
-  --color-prettylights-syntax-string: hsl(var(--secondary));
-  --color-prettylights-syntax-variable: hsl(var(--secondary));
-  --color-prettylights-syntax-brackethighlighter-unmatched: hsl(var(--destructive));
-  --color-prettylights-syntax-invalid-illegal-text: hsl(var(--destructive));
-  --color-prettylights-syntax-invalid-illegal-bg: hsl(var(--background));
-  --color-prettylights-syntax-carriage-return-text: hsl(var(--background));
-  --color-prettylights-syntax-carriage-return-bg: hsl(var(--primary));
-  --color-prettylights-syntax-string-regexp: hsl(var(--secondary));
-  --color-prettylights-syntax-markup-list: hsl(var(--foreground));
-  --color-prettylights-syntax-markup-heading: hsl(var(--primary));
-  --color-prettylights-syntax-markup-italic: hsl(var(--foreground));
-  --color-prettylights-syntax-markup-bold: hsl(var(--foreground));
-  --color-prettylights-syntax-markup-deleted-text: hsl(var(--destructive));
-  --color-prettylights-syntax-markup-deleted-bg: hsl(var(--background));
-  --color-prettylights-syntax-markup-inserted-text: hsl(var(--secondary));
-  --color-prettylights-syntax-markup-inserted-bg: hsl(var(--background));
-  --color-prettylights-syntax-markup-changed-text: hsl(var(--warning));
-  --color-prettylights-syntax-markup-changed-bg: hsl(var(--background));
-  --color-prettylights-syntax-markup-ignored-text: hsl(var(--muted));
-  --color-prettylights-syntax-markup-ignored-bg: hsl(var(--primary));
-  --color-prettylights-syntax-meta-diff-range: hsl(var(--primary));
-  --color-prettylights-syntax-brackethighlighter-angle: hsl(var(--foreground));
-  --color-prettylights-syntax-sublimelinter-gutter-mark: hsl(var(--muted-foreground));
-  --color-prettylights-syntax-constant-other-reference-link: hsl(var(--secondary));
-}
-
-/* Add any other custom styles below */

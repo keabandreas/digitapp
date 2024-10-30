@@ -1,7 +1,7 @@
 "use client"
 
-import { cn } from "@/lib/utils";
-import { IconLayoutNavbarCollapse } from "@tabler/icons-react";
+import { cn } from "@/lib/utils"
+import { IconLayoutNavbarCollapse } from "@tabler/icons-react"
 import {
   AnimatePresence,
   MotionValue,
@@ -9,10 +9,10 @@ import {
   useMotionValue,
   useSpring,
   useTransform,
-} from "framer-motion";
-import Link from "next/link";
-import { useRef, useState } from "react";
-import { IconHome, IconCloudComputing, IconTimeline, IconBook2 } from "@tabler/icons-react";
+} from "framer-motion"
+import Link from "next/link"
+import { useRef, useState } from "react"
+import { IconHome, IconCloudComputing, IconTimeline, IconBook2 } from "@tabler/icons-react"
 
 export const FloatingDock = ({
   items,
@@ -27,9 +27,8 @@ export const FloatingDock = ({
     <>
       <FloatingDockDesktop items={items} className={desktopClassName} />
     </>
-  );
-};
-
+  )
+}
 
 const FloatingDockDesktop = ({
   items,
@@ -38,13 +37,13 @@ const FloatingDockDesktop = ({
   items: { title: string; icon: React.ReactNode; href: string }[];
   className?: string;
 }) => {
-  let mouseX = useMotionValue(Infinity);
+  let mouseX = useMotionValue(Infinity)
   return (
     <motion.div
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
       className={cn(
-        "mx-auto hidden md:flex h-16 gap-4 items-end rounded-2xl bg-gray-50 dark:bg-neutral-900 px-4 pb-3",
+        "mx-auto hidden md:flex h-16 gap-4 items-end rounded-2xl bg-background/80 backdrop-blur-sm border border-border px-4 pb-3",
         className
       )}
     >
@@ -52,8 +51,8 @@ const FloatingDockDesktop = ({
         <IconContainer mouseX={mouseX} key={item.title} {...item} />
       ))}
     </motion.div>
-  );
-};
+  )
+}
 
 function IconContainer({
   mouseX,
@@ -66,42 +65,41 @@ function IconContainer({
   icon: React.ReactNode;
   href: string;
 }) {
-  let ref = useRef<HTMLDivElement>(null);
+  let ref = useRef<HTMLDivElement>(null)
 
   let distance = useTransform(mouseX, (val) => {
-    let bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
-    return val - bounds.x - bounds.width / 2;
-  });
+    let bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 }
+    return val - bounds.x - bounds.width / 2
+  })
 
-  let widthTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
-  let heightTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
-
-  let widthTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
-  let heightTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
+  let widthTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40])
+  let heightTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40])
+  let widthTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20])
+  let heightTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20])
 
   let width = useSpring(widthTransform, {
     mass: 0.1,
     stiffness: 150,
     damping: 12,
-  });
+  })
   let height = useSpring(heightTransform, {
     mass: 0.1,
     stiffness: 150,
     damping: 12,
-  });
+  })
 
   let widthIcon = useSpring(widthTransformIcon, {
     mass: 0.1,
     stiffness: 150,
     damping: 12,
-  });
+  })
   let heightIcon = useSpring(heightTransformIcon, {
     mass: 0.1,
     stiffness: 150,
     damping: 12,
-  });
+  })
 
-  const [hovered, setHovered] = useState(false);
+  const [hovered, setHovered] = useState(false)
 
   return (
     <Link href={href}>
@@ -110,7 +108,7 @@ function IconContainer({
         style={{ width, height }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="aspect-square rounded-full bg-gray-200 dark:bg-neutral-800 flex items-center justify-center relative"
+        className="aspect-square rounded-full bg-muted flex items-center justify-center relative"
       >
         <AnimatePresence>
           {hovered && (
@@ -118,7 +116,7 @@ function IconContainer({
               initial={{ opacity: 0, y: 10, x: "-50%" }}
               animate={{ opacity: 1, y: 0, x: "-50%" }}
               exit={{ opacity: 0, y: 2, x: "-50%" }}
-              className="px-2 py-0.5 whitespace-pre rounded-md bg-gray-100 border dark:bg-neutral-800 dark:border-neutral-900 dark:text-white border-gray-200 text-neutral-700 absolute left-1/2 -translate-x-1/2 -top-8 w-fit text-xs"
+              className="px-2 py-0.5 whitespace-pre rounded-md bg-popover text-popover-foreground border border-border absolute left-1/2 -translate-x-1/2 -top-8 w-fit text-xs"
             >
               {title}
             </motion.div>
@@ -126,38 +124,38 @@ function IconContainer({
         </AnimatePresence>
         <motion.div
           style={{ width: widthIcon, height: heightIcon }}
-          className="flex items-center justify-center"
+          className="flex items-center justify-center text-muted-foreground"
         >
           {icon}
         </motion.div>
       </motion.div>
     </Link>
-  );
+  )
 }
 
 export function FloatingDockDemo() {
   const links = [
     {
       title: "Dashboard",
-      icon: <IconHome className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
+      icon: <IconHome className="h-full w-full" />,
       href: "/",
     },
     {
       title: "Host Applications",
-      icon: <IconCloudComputing className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
+      icon: <IconCloudComputing className="h-full w-full" />,
       href: "/hostapps",
     },
     {
       title: "Statistics",
-      icon: <IconTimeline className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
+      icon: <IconTimeline className="h-full w-full" />,
       href: "/statistics",
     },
     {
       title: "Wiki",
-      icon: <IconBook2 className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
+      icon: <IconBook2 className="h-full w-full" />,
       href: "/wiki"
     }
-  ];
+  ]
 
   return (
     <div className="flex items-center justify-center h-[35rem] w-full">
@@ -167,7 +165,7 @@ export function FloatingDockDemo() {
         mobileClassName="fixed bottom-4 right-4"
       />
     </div>
-  );
+  )
 }
 
-export default FloatingDockDemo;
+export default FloatingDockDemo

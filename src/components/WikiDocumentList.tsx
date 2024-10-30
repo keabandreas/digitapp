@@ -24,15 +24,9 @@ interface WikiDocumentListProps {
 }
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
-  "General": <IconFileText size={20} />,
-  "IT": <IconDeviceDesktop size={20} />,
-  "Systems": <IconServer size={20} />,
-}
-
-const categoryColors: { [key: string]: string } = {
-  "General": "text-green-500",
-  "IT": "text-purple-500",
-  "Systems": "text-blue-500",
+  "General": <IconFileText size={20} className="text-green transition-colors" />,
+  "IT": <IconDeviceDesktop size={20} className="text-accent transition-colors" />,
+  "Systems": <IconServer size={20} className="text-secondary transition-colors" />,
 }
 
 export default function WikiDocumentList({
@@ -103,15 +97,15 @@ export default function WikiDocumentList({
                   className="cursor-pointer"
                   onClick={() => toggleCategory(category)}
                 >
-                  <CardContent className="flex items-center justify-between p-2">
-                    <div className="flex items-center">
-                      {expandedCategories[category] ? <IconChevronDown size={20} /> : <IconChevronRight size={20} />}
-                      <span className="font-medium ml-2">{category}</span>
-                    </div>
-                    <span className={categoryColors[category] || 'text-gray-500'}>
-                      {categoryIcons[category] || <IconFileText size={20} />}
-                    </span>
-                  </CardContent>
+                <CardContent className="flex items-center justify-between p-2">
+                  <div className="flex items-center">
+                    {expandedCategories[category] ? <IconChevronDown size={20} /> : <IconChevronRight size={20} />}
+                    <span className="font-medium ml-2">{category}</span>
+                  </div>
+                  <span>
+                    {categoryIcons[category] || <IconFileText size={20} className="text-primary" />}
+                  </span>
+                </CardContent>
                 </Card>
                 {expandedCategories[category] && (
                   <ul className="space-y-2 mt-2 ml-6">
