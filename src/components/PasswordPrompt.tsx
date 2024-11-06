@@ -28,6 +28,7 @@ type FormValues = z.infer<typeof formSchema>
 
 export function PasswordPrompt({ isOpen, onPasswordSubmit, onClose }: PasswordPromptProps) {
   const [isValidating, setIsValidating] = useState(false)
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,7 +39,6 @@ export function PasswordPrompt({ isOpen, onPasswordSubmit, onClose }: PasswordPr
   const onSubmit = async (values: FormValues) => {
     try {
       setIsValidating(true)
-      console.log('Validating password:', { password: values.password }) // Debug log
 
       const response = await fetch('/api/handbrake?action=list_files', {
         method: 'POST',
@@ -51,10 +51,12 @@ export function PasswordPrompt({ isOpen, onPasswordSubmit, onClose }: PasswordPr
       });
 
       const data = await response.json();
-      console.log('Server response:', data) // Debug log
 
       if (!response.ok) {
-        throw new Error(data.error || 'Invalid password');
+        if (response.status === 503 || response.status === 502) {
+          throw new Error('Server is currently unavailable. Please try again later.');
+        }
+        throw new Error(data.error || data.details || 'Invalid password');
       }
 
       // If we got here, the password is valid
@@ -62,19 +64,23 @@ export function PasswordPrompt({ isOpen, onPasswordSubmit, onClose }: PasswordPr
       form.reset();
     } catch (error) {
       console.error('Password validation error:', error);
-      toast.error(error instanceof Error ? error.message : "Invalid password");
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to validate password. Please try again.';
+      
+      toast.error(errorMessage);
     } finally {
-      setIsValidating(false)
+      setIsValidating(false);
     }
   }
 
+  const handleClose = () => {
+    form.reset();
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      if (!open) {
-        form.reset();
-        onClose();
-      }
-    }}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Enter SFTP Password</DialogTitle>
@@ -94,14 +100,28 @@ export function PasswordPrompt({ isOpen, onPasswordSubmit, onClose }: PasswordPr
                       placeholder="Enter SFTP password"
                       {...field}
                       autoComplete="off"
+                      disabled={isValidating}
                     />
                   </FormControl>
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isValidating}>
-              {isValidating ? "Validating..." : "Continue"}
-            </Button>
+            <div className="flex gap-2 justify-end">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleClose}
+                disabled={isValidating}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isValidating}
+              >
+                {isValidating ? "Validating..." : "Continue"}
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>
