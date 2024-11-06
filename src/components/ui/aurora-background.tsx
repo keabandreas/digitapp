@@ -1,60 +1,50 @@
 "use client";
+import { cn } from "@/lib/utils";
+import React, { ReactNode } from "react";
 
-import React from "react";
+interface AuroraBackgroundProps extends React.HTMLProps<HTMLDivElement> {
+  children: ReactNode;
+  showRadialGradient?: boolean;
+}
 
 export const AuroraBackground = ({
+  className,
   children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => {
+  showRadialGradient = true,
+  ...props
+}: AuroraBackgroundProps) => {
   return (
-    <div className={`aurora-background min-h-screen w-full ${className}`}>
+    <div
+      className={cn(
+        "relative flex flex-col h-screen items-center justify-center transition-bg",
+        className
+      )}
+      {...props}
+    >
       <div className="absolute inset-0 overflow-hidden">
-        <div className="aurora-blur absolute -inset-[10px]"></div>
+        <div
+          className={cn(
+            `
+            [--white-gradient:repeating-linear-gradient(100deg,hsl(var(--base-100))_0%,hsl(var(--base-100))_7%,transparent_10%,transparent_12%,hsl(var(--base-100))_16%)]
+            [--dark-gradient:repeating-linear-gradient(100deg,hsl(var(--base-300))_0%,hsl(var(--base-300))_7%,transparent_10%,transparent_12%,hsl(var(--base-300))_16%)]
+            [--aurora:repeating-linear-gradient(100deg,hsl(var(--primary))_10%,hsl(var(--secondary))_100%,hsl(var(--accent))_20%,hsl(var(--info))_25%,hsl(var(--primary))_30%)]
+            [background-image:var(--white-gradient),var(--aurora)]
+            dark:[background-image:var(--dark-gradient),var(--aurora)]
+            [background-size:300%,_200%]
+            [background-position:50%_50%,50%_50%]
+            filter blur-[10px]
+            after:content-[""] after:absolute after:inset-0 after:[background-image:var(--white-gradient),var(--aurora)] 
+            after:dark:[background-image:var(--dark-gradient),var(--aurora)]
+            after:[background-size:200%,_100%] 
+            after:animate-aurora after:[background-attachment:fixed] after:mix-blend-difference
+            pointer-events-none
+            absolute -inset-[10px] opacity-50`,
+            showRadialGradient &&
+              `[mask-image:radial-gradient(ellipse_at_100%_0%,black_10%,transparent_70%)]`
+          )}
+        />
       </div>
-      <div className="relative z-10 h-full w-full">
-        {children}
-      </div>
-    </div>
-  );
-};
-
-export const AuroraBackgroundBorder = ({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => {
-  return (
-    <div className={`aurora-background-border relative ${className}`}>
-      <div className="absolute inset-0 overflow-hidden rounded-lg">
-        <div className="aurora-blur absolute -inset-[10px]"></div>
-      </div>
-      <div className="relative bg-gray-900/50 backdrop-blur-xl h-full w-full rounded-lg">
-        {children}
-      </div>
-    </div>
-  );
-};
-
-export const AuroraBackgroundIcon = ({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => {
-  return (
-    <div className={`aurora-background-icon relative ${className}`}>
-      <div className="absolute inset-0 overflow-hidden rounded-lg">
-        <div className="aurora-blur absolute -inset-[10px]"></div>
-      </div>
-      <div className="relative h-full w-full rounded-lg">
-        {children}
-      </div>
+      {children}
     </div>
   );
 };

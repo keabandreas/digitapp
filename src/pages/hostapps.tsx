@@ -1,3 +1,4 @@
+// src/pages/hostapps.tsx
 import React, { useState, useEffect } from 'react'
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card"
 import SftpUserCreationForm from '@/components/SftpUserCreationForm'

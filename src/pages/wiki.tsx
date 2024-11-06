@@ -179,8 +179,8 @@ export default function WikiPage() {
   }, [])
 
   return (
-    <div className="flex flex-col h-screen w-full bg-background text-foreground">
-      <div className="flex-shrink-0 p-4 bg-background border-b">
+    <div className="flex flex-col h-screen w-full bg-base-300 text-foreground">
+      <div className="flex-shrink-0 p-4 bg-base-300 border-b">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Wiki Documents</h1>
           <div className="flex items-center space-x-4">

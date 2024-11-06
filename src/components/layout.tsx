@@ -1,4 +1,3 @@
-// src/components/layout.tsx
 "use client"
 import React, { ReactNode } from 'react'
 import FloatingDock from '@/components/ui/floating-dock'
@@ -10,17 +9,14 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="flex flex-col w-screen h-screen overflow-hidden bg-background">
-      <header className="p-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">digitAPP</h1>
+    <div className="flex flex-col w-screen h-screen">
+      <header className="p-4 flex justify-between items-center absolute top-0 left-0 right-0 z-50 bg-transparent">
+        <h1 className="text-2xl font-bold"></h1>
         <ThemeSwitcher />
       </header>
-      <div className="flex-grow flex overflow-hidden">
-        <main className="flex-grow overflow-auto scrollbar-hide">
-          {children}
-        </main>
-      </div>
-      <FloatingDock />
+      <main className="flex-grow">
+        {children}
+      </main>
     </div>
   )
 }
