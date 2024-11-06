@@ -6,6 +6,7 @@ import { PasswordPrompt } from '@/components/PasswordPrompt'
 import { VideoProcessorCard } from '@/components/VideoProcessorCard'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { toast } from "sonner"
+import { UserPlus } from "lucide-react"
 
 const PROCESSING_STEPS = [
   {
@@ -188,7 +189,10 @@ export default function HostApplications() {
           className="cursor-pointer hover:border-primary transition-all duration-300"
         >
           <CardHeader>
-            <CardTitle>Create SFTP User</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5" />
+            Create SFTP User
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">

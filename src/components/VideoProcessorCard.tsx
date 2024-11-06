@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { MultiStepLoader } from "@/components/ui/multi-step-loader"
 import { cn } from "@/lib/utils"
-import { Cpu } from "lucide-react"
+import { Repeat } from "lucide-react"
 
 interface ProcessingState {
   isProcessing: boolean
@@ -34,7 +34,7 @@ export function VideoProcessorCard({ onClick, processingState }: VideoProcessorC
         <>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Cpu className="h-5 w-5 animate-pulse" />
+              <Repeat className="h-5 w-5 animate-pulse" />
               Processing Video
             </CardTitle>
           </CardHeader>
@@ -65,7 +65,7 @@ export function VideoProcessorCard({ onClick, processingState }: VideoProcessorC
         <>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Cpu className="h-5 w-5" />
+              <Repeat className="h-5 w-5 text-mprimary" />
               Video Processor
             </CardTitle>
           </CardHeader>
