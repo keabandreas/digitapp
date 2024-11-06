@@ -1,0 +1,41 @@
+Generate a password, the script behind the api should handle this
+Quota should be defaulted to unlimited and not need to be filled. This is just a nice
+to have
+
+
+
+Error
+Failed to create user
+Details: Failed to create user: Command failed: sudo: /usr/bin/setquota: command not found Python server: {"error":"Failed to create user: Command failed: sudo: /usr/bin/setquota: command not found\n"}
+
+Oct 30 15:01:01 ev-sftp python3[315113]: 2024-10-30 15:01:01,240 - INFO - 172.20.96.19 - - [30/Oct/2024 15:01:01] "GET /generate_token HTTP/1.1" 200 -
+Oct 30 15:01:01 ev-sftp python3[315113]: 2024-10-30 15:01:01,244 - INFO - Creating user with data: testuser22, {'First name': 'testuser22', 'Last name': 'testuser22', 'User Type': 'internal', 'Department': 'Digit', 'Email': 'testuser22.testuser22@karlshamnenergi.se'}, deletion: 0, quota: 10
+Oct 30 15:01:01 ev-sftp sudo[315121]:    digit : PWD=/home/digit/scripts/sftp/sftp/user_creation ; USER=root ; COMMAND=/usr/sbin/useradd -m -d /srv/sftp/testuser22 -s /usr/sbin/nologin -G sftp testuser22
+Oct 30 15:01:01 ev-sftp sudo[315121]: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1001)
+Oct 30 15:01:01 ev-sftp useradd[315122]: new group: name=testuser22, GID=1008
+Oct 30 15:01:01 ev-sftp useradd[315122]: new user: name=testuser22, UID=1007, GID=1008, home=/srv/sftp/testuser22, shell=/usr/sbin/nologin, from=none
+Oct 30 15:01:01 ev-sftp useradd[315122]: add 'testuser22' to group 'sftp'
+Oct 30 15:01:01 ev-sftp useradd[315122]: add 'testuser22' to shadow group 'sftp'
+Oct 30 15:01:01 ev-sftp sudo[315121]: pam_unix(sudo:session): session closed for user root
+Oct 30 15:01:01 ev-sftp sudo[315130]:    digit : PWD=/home/digit/scripts/sftp/sftp/user_creation ; USER=root ; COMMAND=/usr/sbin/chpasswd
+Oct 30 15:01:01 ev-sftp sudo[315130]: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1001)
+Oct 30 15:01:01 ev-sftp chpasswd[315131]: pam_unix(chpasswd:chauthtok): password changed for testuser22
+Oct 30 15:01:01 ev-sftp sudo[315130]: pam_unix(sudo:session): session closed for user root
+Oct 30 15:01:01 ev-sftp sudo[315134]:    digit : PWD=/home/digit/scripts/sftp/sftp/user_creation ; USER=root ; COMMAND=/usr/bin/chmod 700 /srv/sftp/testuser22
+Oct 30 15:01:01 ev-sftp sudo[315134]: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1001)
+Oct 30 15:01:01 ev-sftp sudo[315134]: pam_unix(sudo:session): session closed for user root
+Oct 30 15:01:01 ev-sftp python3[315113]: 2024-10-30 15:01:01,325 - ERROR - Command failed: sudo -S /usr/bin/setquota -u testuser22 0 10240 0 0 /
+Oct 30 15:01:01 ev-sftp python3[315113]: 2024-10-30 15:01:01,325 - ERROR - Error output: sudo: /usr/bin/setquota: command not found
+Oct 30 15:01:01 ev-sftp python3[315113]: 2024-10-30 15:01:01,325 - ERROR - Error creating user testuser22: Command failed: sudo: /usr/bin/setquota: command not found
+Oct 30 15:01:01 ev-sftp sudo[315137]:    digit : PWD=/home/digit/scripts/sftp/sftp/user_creation ; USER=root ; COMMAND=/usr/sbin/userdel -r testuser22
+Oct 30 15:01:01 ev-sftp sudo[315137]: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1001)
+Oct 30 15:01:01 ev-sftp userdel[315138]: delete user 'testuser22'
+Oct 30 15:01:01 ev-sftp userdel[315138]: delete 'testuser22' from group 'sftp'
+Oct 30 15:01:01 ev-sftp userdel[315138]: removed group 'testuser22' owned by 'testuser22'
+Oct 30 15:01:01 ev-sftp userdel[315138]: removed shadow group 'testuser22' owned by 'testuser22'
+Oct 30 15:01:01 ev-sftp userdel[315138]: delete 'testuser22' from shadow group 'sftp'
+Oct 30 15:01:01 ev-sftp sudo[315137]: pam_unix(sudo:session): session closed for user root
+Oct 30 15:01:01 ev-sftp python3[315113]: 2024-10-30 15:01:01,358 - INFO - Cleaned up user testuser22
+Oct 30 15:01:01 ev-sftp python3[315113]: 2024-10-30 15:01:01,358 - INFO - 172.20.96.19 - - [30/Oct/2024 15:01:01] "POST /create_user HTTP/1.1" 500 -
+
+This is a non issue really - when we were done with this I had planned to remove the need for quota. So lets just remove it instead of trying to fix it. It is no longer needed

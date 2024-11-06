@@ -25,8 +25,8 @@ interface WikiDocumentListProps {
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
   "General": <IconFileText size={20} className="text-green transition-colors" />,
-  "IT": <IconDeviceDesktop size={20} className="text-accent transition-colors" />,
-  "Systems": <IconServer size={20} className="text-secondary transition-colors" />,
+  "IT": <IconDeviceDesktop size={20} className="text-orange transition-colors" />,
+  "Systems": <IconServer size={20} className="text-purple transition-colors" />,
 }
 
 export default function WikiDocumentList({

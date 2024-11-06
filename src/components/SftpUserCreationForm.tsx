@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label"
 
 interface FormData {
   username: string
-  password: string
   firstName: string
   lastName: string
   userType: string
@@ -16,7 +15,6 @@ interface FormData {
   responsibleFirstName: string
   responsibleLastName: string
   deletionTime: string
-  quotaMB: string
 }
 
 interface SftpUserCreationFormProps {
@@ -26,7 +24,6 @@ interface SftpUserCreationFormProps {
 export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreationFormProps) {
   const [formData, setFormData] = useState<FormData>({
     username: '',
-    password: '',
     firstName: '',
     lastName: '',
     userType: '',
@@ -35,12 +32,13 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
     responsibleFirstName: '',
     responsibleLastName: '',
     deletionTime: '',
-    quotaMB: '',
   })
 
   const [message, setMessage] = useState<string>('')
+  const [errorDetails, setErrorDetails] = useState<string>('')
   const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isError, setIsError] = useState<boolean>(false)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -54,9 +52,11 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setIsError(false)
+    setErrorDetails('')
+
     const userData = {
       username: formData.username,
-      password: formData.password,
       user_info: {
         "First name": formData.firstName,
         "Last name": formData.lastName,
@@ -73,7 +73,6 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
         }),
       },
       deletion_time: formData.deletionTime,
-      quotaMB: formData.quotaMB,
     }
 
     try {
@@ -85,16 +84,34 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
         body: JSON.stringify(userData),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(data.details || data.error || 'Failed to create user')
       }
 
-      const data = await response.json()
       setMessage(data.message || 'User created successfully')
+      setIsError(false)
       setIsAlertOpen(true)
       onUserCreated()
+
+      // Clear form on success
+      setFormData({
+        username: '',
+        firstName: '',
+        lastName: '',
+        userType: '',
+        department: '',
+        company: '',
+        responsibleFirstName: '',
+        responsibleLastName: '',
+        deletionTime: '',
+      })
     } catch (error) {
-      setMessage('Failed to create user: ' + (error as Error).message)
+      console.error('Error creating user:', error)
+      setIsError(true)
+      setMessage('Failed to create user')
+      setErrorDetails((error as Error).message)
       setIsAlertOpen(true)
     } finally {
       setIsLoading(false)
@@ -113,17 +130,7 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
           required
         />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          value={formData.password}
-          onChange={handleInputChange}
-          required
-        />
-      </div>
+
       <div className="space-y-2">
         <Label htmlFor="firstName">First Name</Label>
         <Input
@@ -134,6 +141,7 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
           required
         />
       </div>
+
       <div className="space-y-2">
         <Label htmlFor="lastName">Last Name</Label>
         <Input
@@ -144,10 +152,12 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
           required
         />
       </div>
+
       <div className="space-y-2">
         <Label htmlFor="userType">User Type</Label>
         <Select
           name="userType"
+          value={formData.userType}
           onValueChange={(value) => handleSelectChange('userType', value)}
         >
           <SelectTrigger>
@@ -159,10 +169,12 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
           </SelectContent>
         </Select>
       </div>
+
       <div className="space-y-2">
         <Label htmlFor="department">Department</Label>
         <Select
           name="department"
+          value={formData.department}
           onValueChange={(value) => handleSelectChange('department', value)}
         >
           <SelectTrigger>
@@ -177,6 +189,7 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
           </SelectContent>
         </Select>
       </div>
+
       {formData.userType === 'external' && (
         <>
           <div className="space-y-2">
@@ -186,6 +199,7 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
               name="company"
               value={formData.company}
               onChange={handleInputChange}
+              required
             />
           </div>
           <div className="space-y-2">
@@ -195,6 +209,7 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
               name="responsibleFirstName"
               value={formData.responsibleFirstName}
               onChange={handleInputChange}
+              required
             />
           </div>
           <div className="space-y-2">
@@ -204,14 +219,17 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
               name="responsibleLastName"
               value={formData.responsibleLastName}
               onChange={handleInputChange}
+              required
             />
           </div>
         </>
       )}
+
       <div className="space-y-2">
         <Label htmlFor="deletionTime">Deletion Time</Label>
         <Select
           name="deletionTime"
+          value={formData.deletionTime}
           onValueChange={(value) => handleSelectChange('deletionTime', value)}
         >
           <SelectTrigger>
@@ -226,17 +244,7 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="quotaMB">Quota (MB)</Label>
-        <Input
-          id="quotaMB"
-          name="quotaMB"
-          type="number"
-          value={formData.quotaMB}
-          onChange={handleInputChange}
-          required
-        />
-      </div>
+
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? 'Creating User...' : 'Create User'}
       </Button>
@@ -244,8 +252,15 @@ export default function SftpUserCreationForm({ onUserCreated }: SftpUserCreation
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>User Creation</AlertDialogTitle>
-            <AlertDialogDescription>{message}</AlertDialogDescription>
+            <AlertDialogTitle>{isError ? 'Error' : 'Success'}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {message}
+              {errorDetails && (
+                <div className="mt-2 text-sm text-red-600">
+                  Details: {errorDetails}
+                </div>
+              )}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setIsAlertOpen(false)}>Okay</AlertDialogAction>

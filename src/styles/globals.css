@@ -5,51 +5,100 @@
 @layer base {
   :root {
     /* Nord Light Theme Variables */
-    --background: 218 27% 94%;
-    --foreground: 220 16% 22%;
-    --card: 218 27% 94%;
-    --card-foreground: 220 16% 22%;
-    --popover: 218 27% 94%;
-    --popover-foreground: 220 16% 22%;
-    --primary: 213 32% 52%; /* Nord blue */
-    --primary-foreground: 218 27% 94%;
-    --secondary: 220 16% 90%; /* Nord frost */
-    --secondary-foreground: 220 16% 22%;
-    --muted: 220 16% 90%;
-    --muted-foreground: 220 16% 40%;
-    --accent: 213 32% 52%; /* Nord red */
-    --accent-foreground: 220 16% 22%;
-    --destructive: 354 42% 56%;
-    --destructive-foreground: 218 27% 94%;
-    --border: 220 16% 86%;
-    --input: 220 16% 86%;
-    --ring: 213 32% 52%;
-    --radius: 0.5rem;
+    --primary: 213 32% 63%;          /* #81a1c1 */
+    --primary-content: 220 16% 22%;  /* #2e3440 */
+    --secondary: 311 20% 63%;        /* #b48ead */
+    --secondary-content: 220 16% 22%;/* #2e3440 */
+    --accent: 92 28% 65%;           /* #a3be8c */
+    --accent-content: 220 16% 22%;  /* #2e3440 */
+    --neutral: 213 32% 63%;         /* #81a1c1 */
+    --neutral-content: 220 16% 22%; /* #2e3440 */
+    
+    /* Base colors */
+    --base-100: 220 16% 22%;        /* #2e3440 */
+    --base-200: 222 16% 28%;        /* #3b4252 */
+    --base-300: 220 17% 32%;        /* #434c5e */
+    --base-content: 218 27% 92%;    /* #e5e9f0 */
+    
+    /* State colors */
+    --info: 193 43% 67%;            /* #88c0d0 */
+    --info-content: 220 16% 22%;    /* #2e3440 */
+    --success: 92 28% 65%;          /* #a3be8c */
+    --success-content: 220 16% 22%; /* #2e3440 */
+    --warning: 40 71% 73%;          /* #ebcb8b */
+    --warning-content: 220 16% 22%; /* #2e3440 */
+    --error: 354 42% 56%;           /* #bf616a */
+    --error-content: 220 16% 22%;   /* #2e3440 */
+
+    /* Your existing custom colors */
+    --red: 354 42% 56%;
+    --green: 92 28% 65%;
+    --blue: 210 34% 63%;
+    --orange: 14 51% 63%;
+    --yellow: 40 71% 73%;
+    --purple: 311 20% 63%;
+
+    /* Keep other existing variables */
+    --background: var(--base-100);
+    --foreground: var(--base-content);
+    --card: var(--base-100);
+    --card-foreground: var(--base-content);
+    --popover: var(--base-100);
+    --popover-foreground: var(--base-content);
+    --muted: var(--base-200);
+    --muted-foreground: 218 27% 80%;
+    --border: var(--base-200);
+    --input: var(--base-200);
+    --ring: var(--primary);
   }
 }
 
 @layer base {
   .dark {
-    --background: 220 16% 22%;
-    --foreground: 218 27% 94%;
-    --card: 220 16% 22%;
-    --card-foreground: 218 27% 94%;
-    --popover: 220 16% 22%;
-    --popover-foreground: 218 27% 94%;
-    --primary: 193 43% 67%;
-    --primary-foreground: 220 16% 22%;
-    --secondary: 220 16% 28%;
-    --secondary-foreground: 218 27% 94%;
-    --muted: 220 16% 28%;
+    --primary: 213 32% 63%;          /* #81a1c1 */
+    --primary-content: 220 16% 22%;  /* #2e3440 */
+    --secondary: 311 20% 63%;        /* #b48ead */
+    --secondary-content: 220 16% 22%;/* #2e3440 */
+    --accent: 92 28% 65%;           /* #a3be8c */
+    --accent-content: 220 16% 22%;  /* #2e3440 */
+    --neutral: 213 32% 63%;         /* #81a1c1 */
+    --neutral-content: 220 16% 22%; /* #2e3440 */
+    
+    /* Base colors */
+    --base-100: 220 16% 22%;        /* #2e3440 */
+    --base-200: 222 16% 28%;        /* #3b4252 */
+    --base-300: 220 17% 32%;        /* #434c5e */
+    --base-content: 218 27% 92%;    /* #e5e9f0 */
+    
+    /* State colors */
+    --info: 193 43% 67%;            /* #88c0d0 */
+    --info-content: 220 16% 22%;    /* #2e3440 */
+    --success: 92 28% 65%;          /* #a3be8c */
+    --success-content: 220 16% 22%; /* #2e3440 */
+    --warning: 40 71% 73%;          /* #ebcb8b */
+    --warning-content: 220 16% 22%; /* #2e3440 */
+    --error: 354 42% 56%;           /* #bf616a */
+    --error-content: 220 16% 22%;   /* #2e3440 */
+
+    /* Your existing custom colors */
+    --red: 354 42% 56%;
+    --green: 92 28% 65%;
+    --blue: 210 34% 63%;
+    --orange: 14 51% 63%;
+    --yellow: 40 71% 73%;
+    --purple: 311 20% 63%;
+
+    --background: var(--base-100);
+    --foreground: var(--base-content);
+    --card: var(--base-100);
+    --card-foreground: var(--base-content);
+    --popover: var(--base-100);
+    --popover-foreground: var(--base-content);
+    --muted: var(--base-200);
     --muted-foreground: 218 27% 80%;
-    --accent: 213 32% 52%;
-    --accent-foreground: 218 27% 94%;
-    --destructive: 354 42% 56%;
-    --destructive-foreground: 218 27% 94%;
-    --border: 220 16% 28%;
-    --input: 220 16% 28%;
-    --ring: 193 43% 67%;
-    --green: 150 23% 53%;
+    --border: var(--base-200);
+    --input: var(--base-200);
+    --ring: var(--primary);
   }
 }
 
