@@ -1,7 +1,6 @@
 // src/components/layout.tsx
 "use client"
 import React, { ReactNode } from 'react'
-import FloatingDock from '@/components/ui/floating-dock'
 import { ThemeToggle } from '@/components/dashboard/ThemeToggle';
 
 interface LayoutProps {

@@ -1,4 +1,4 @@
-// src/pages/api/add-csv-row.ts
+// src/pages/api/statistics/add-csv-row.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const response = await fetch(`${nodeServerUrl}/api/add-csv-row`, {
+    const response = await fetch(`${nodeServerUrl}/api/statistics/add-csv-row`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body),

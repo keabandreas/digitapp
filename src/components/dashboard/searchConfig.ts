@@ -1,5 +1,5 @@
 // @/components/dashboard/searchConfig.ts
-import { CommandItem } from './types';
+import { CommandItem } from '@/components/dashboard/types';
 
 export const searchConfig = {
   fuseOptions: {

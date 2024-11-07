@@ -1,10 +1,10 @@
 // src/pages/hostapps.tsx
 import React, { useState, useEffect } from 'react'
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card"
-import SftpUserCreationForm from '@/components/SftpUserCreationForm'
-import { HandbrakeProcessorForm } from '@/components/HandbrakeProcessorForm'
-import { PasswordPrompt } from '@/components/PasswordPrompt'
-import { VideoProcessorCard } from '@/components/VideoProcessorCard'
+import SftpUserCreationForm from '@/components/hostapps/SftpUserCreationForm'
+import { HandbrakeProcessorForm } from '@/components/hostapps/HandbrakeProcessorForm'
+import { PasswordPrompt } from '@/components/hostapps/PasswordPrompt'
+import { VideoProcessorCard } from '@/components/hostapps/VideoProcessorCard'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { UserPlus } from "lucide-react"
@@ -47,7 +47,7 @@ export default function HostApplications() {
 
   const fetchPresets = async () => {
     try {
-      const response = await fetch('/api/handbrake?action=list_presets')
+      const response = await fetch('/api/hostapps/handbrake?action=list_presets')
       const data = await response.json()
       if (data.presets) {
         setPresets(data.presets)
@@ -92,7 +92,7 @@ export default function HostApplications() {
         })
       }, 100)
   
-      const uploadResponse = await fetch('/api/handbrake?action=upload_file', {
+      const uploadResponse = await fetch('/api/hostapps/handbrake?action=upload_file', {
         method: 'POST',
         body: formData
       })
@@ -131,7 +131,7 @@ export default function HostApplications() {
         })
       }, 200)
 
-      const processResponse = await fetch('/api/handbrake?action=process_file', {
+      const processResponse = await fetch('/api/hostapps/handbrake?action=process_file', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

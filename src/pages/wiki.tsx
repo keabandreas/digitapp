@@ -1,17 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
-import WikiDocumentList from '@/components/WikiDocumentList'
-import WikiDocument from '@/components/WikiDocument'
+import WikiDocumentList from '@/components/wiki/WikiDocumentList'
+import WikiDocument from '@/components/wiki/WikiDocument'
 import dynamic from 'next/dynamic'
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { PasswordPromptModal } from '@/components/PasswordPromptModal'
+import { PasswordPromptModal } from '@/components/wiki/PasswordPromptModal'
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import AddDocument from '@/components/ui/AddDocument'
-import { FileUpload } from '@/components/ui/FileUpload'
+import AddDocument from '@/components/wiki/AddDocument'
+import { FileUpload } from '@/components/wiki/FileUpload'
 import { toast } from 'react-hot-toast'
 
-const MarkdownEditor = dynamic(() => import('@/components/MarkdownEditor'), { ssr: false })
+const MarkdownEditor = dynamic(() => import('@/components/wiki/MarkdownEditor'), { ssr: false })
 
 interface Document {
   id: number
@@ -33,7 +33,7 @@ export default function WikiPage() {
 
   const fetchDocuments = useCallback(async () => {
     try {
-      const response = await fetch('/api/wiki')
+      const response = await fetch('/api/wiki/wiki')
       if (response.ok) {
         const data = await response.json()
         setDocuments(data)
@@ -61,7 +61,7 @@ export default function WikiPage() {
 
   const handleDocumentUpdate = useCallback(async (id: number, title: string, content: string) => {
     try {
-      const response = await fetch('/api/wiki', {
+      const response = await fetch('/api/wiki/wiki', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, title, content }),
@@ -88,7 +88,7 @@ export default function WikiPage() {
 
   const handlePasswordSubmit = useCallback(async (password: string) => {
     try {
-      const response = await fetch('/api/verify-password', {
+      const response = await fetch('/api/wiki/verify-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
@@ -107,7 +107,7 @@ export default function WikiPage() {
 
   const handleCreateDocument = useCallback(async (title: string, category: string, restricted: boolean, content: string = '') => {
     try {
-      const response = await fetch('/api/wiki', {
+      const response = await fetch('/api/wiki/wiki', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, category, restricted, content }),
@@ -150,7 +150,7 @@ export default function WikiPage() {
 
   const handleDeleteDocument = useCallback(async (id: number) => {
     try {
-      const response = await fetch(`/api/wiki/${id}`, {
+      const response = await fetch(`/api/wiki/wiki/${id}`, {
         method: 'DELETE',
       })
       if (response.ok) {

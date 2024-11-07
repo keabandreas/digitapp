@@ -125,7 +125,7 @@ interface CsvManagerProps {
 }
 
 const CsvManager: React.FC<CsvManagerProps> = () => {
-  const { data: csvData, error, mutate } = useSWR('/api/keab-training-data', fetcher);
+  const { data: csvData, error, mutate } = useSWR('/api/statistics/keab-training-data', fetcher);
   const [deletingRow, setDeletingRow] = useState<number | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'add' | 'edit'>('add');
@@ -159,7 +159,7 @@ const CsvManager: React.FC<CsvManagerProps> = () => {
           Time: formatCurrentTime()
         };
 
-        const response = await fetch('/api/add-csv-row', {
+        const response = await fetch('/api/statistics/add-csv-row', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(rowWithTime),
@@ -167,7 +167,7 @@ const CsvManager: React.FC<CsvManagerProps> = () => {
 
         if (!response.ok) throw new Error(await response.text());
       } else {
-        const response = await fetch('/api/edit-csv-row', {
+        const response = await fetch('/api/statistics/edit-csv-row', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -194,7 +194,7 @@ const CsvManager: React.FC<CsvManagerProps> = () => {
   const removeRow = async (index: number) => {
     setDeletingRow(index);
     try {
-      const response = await fetch('/api/remove-csv-row', {
+      const response = await fetch('/api/statistics/remove-csv-row', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ index: index + 1 }),

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import fs from 'fs'
 import path from 'path'
-import { decryptPassword } from '../../lib/encryption'
+import { decryptPassword } from '@/lib/encryption'
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {

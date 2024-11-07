@@ -1,4 +1,4 @@
-// src/pages/api/remove-csv-row.ts
+// src/pages/api/statistics/remove-csv-row.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const response = await fetch(`${nodeServerUrl}/api/remove-csv-row`, {
+    const response = await fetch(`${nodeServerUrl}/api/statistics/remove-csv-row`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

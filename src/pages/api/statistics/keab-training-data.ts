@@ -1,4 +1,3 @@
-// src/pages/api/edit-csv-row.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -9,19 +8,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const response = await fetch(`${nodeServerUrl}/api/edit-csv-row`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body),
-    });
+    const response = await fetch(`${nodeServerUrl}/api/statistics/keab-training-data`);
+    const data = await response.text();
     
     if (!response.ok) {
       throw new Error(`Node server responded with status: ${response.status}`);
     }
     
-    res.status(200).json({ success: true });
+    res.status(200).send(data);
   } catch (error) {
     console.error('API route error:', error);
-    res.status(500).json({ error: 'Failed to edit CSV row' });
+    res.status(500).json({ error: 'Failed to fetch CSV data' });
   }
 }

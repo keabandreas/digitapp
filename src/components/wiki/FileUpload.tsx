@@ -46,7 +46,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileProcessed }) => {
     formData.append('file', file)
 
     try {
-      const response = await fetch('/api/convert-docx', {
+      const response = await fetch('/api/statistics/convert-docx', {
         method: 'POST',
         body: formData,
       })

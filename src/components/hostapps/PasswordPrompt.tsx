@@ -40,7 +40,7 @@ export function PasswordPrompt({ isOpen, onPasswordSubmit, onClose }: PasswordPr
     try {
       setIsValidating(true)
 
-      const response = await fetch('/api/handbrake?action=list_files', {
+      const response = await fetch('/api/hostapps/handbrake?action=list_files', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
