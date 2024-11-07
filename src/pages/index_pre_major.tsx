@@ -2,31 +2,22 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { 
   BarChart3, Database, BookOpen, Command, X, 
-  Keyboard, Search, Settings, Plus, ChevronRight,
-  FileText, Users, Activity
+  Keyboard, Search, Settings, Plus, ChevronRight
 } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import dynamic from 'next/dynamic';
 import { cn } from "@/lib/utils";
-import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 
-const HostApps = dynamic(() => import('@/pages/hostapps'), {
-  ssr: false
-});
+const HostApps = dynamic(() => import('@/pages/hostapps'));
+const Statistics = dynamic(() => import('@/pages/statistics'));
+const Wiki = dynamic(() => import('@/pages/wiki'));
 
-const Statistics = dynamic(() => import('@/pages/statistics'), {
-  ssr: false
-});
-
-const Wiki = dynamic(() => import('@/pages/wiki'), {
-  ssr: false
-});
-
-// Nordic background with HSL colors
+// Nordic background with animated aurora effects
 const NordicBackground = () => (
   <>
-    <div className="absolute inset-0 bg-gradient-to-b from-background to-base-200">
+    <div className="absolute inset-0 bg-gradient-to-b from-[#2E3440] to-[#3B4252]">
+      {/* Animated aurora layers */}
       {[1, 2, 3].map((i) => (
         <motion.div
           key={i}
@@ -43,7 +34,7 @@ const NordicBackground = () => (
             repeatType: "reverse",
           }}
         >
-          <div className={`absolute inset-0 bg-[radial-gradient(circle_at_${50 + i * 20}%_${-20 + i * 10}%,hsl(var(--info)),transparent_${40 + i * 10}%)]`} />
+          <div className={`absolute inset-0 bg-[radial-gradient(circle_at_${50 + i * 20}%_${-20 + i * 10}%,#88C0D0,transparent_${40 + i * 10}%)]`} />
         </motion.div>
       ))}
     </div>
@@ -53,7 +44,7 @@ const NordicBackground = () => (
       {[...Array(20)].map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 bg-info/20 rounded-full"
+          className="absolute w-1 h-1 bg-[#88C0D0]/20 rounded-full"
           style={{
             top: `${Math.random() * 100}%`,
             left: `${Math.random() * 100}%`,
@@ -72,7 +63,7 @@ const NordicBackground = () => (
     </div>
     
     {/* Grid overlay */}
-    <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--base-300))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--base-300))_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-10" />
+    <div className="absolute inset-0 bg-[linear-gradient(to_right,#434C5E_1px,transparent_1px),linear-gradient(to_bottom,#434C5E_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-10" />
   </>
 );
 
@@ -129,6 +120,39 @@ const Window = ({ isOpen, onClose, children, title }) => {
   );
 };
 
+// Enhanced card with 3D tilt effect
+const TiltCard = ({ children, className }) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  const rotateX = useTransform(y, [-100, 100], [10, -10]);
+  const rotateY = useTransform(x, [-100, 100], [-10, 10]);
+
+  const handleMouseMove = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const centerX = rect.x + rect.width / 2;
+    const centerY = rect.y + rect.height / 2;
+    x.set(event.clientX - centerX);
+    y.set(event.clientY - centerY);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      style={{ rotateX, rotateY, perspective: 1000 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
 // Keyboard shortcuts modal
 const ShortcutsModal = ({ isOpen, onClose }) => (
   <AnimatePresence>
@@ -137,14 +161,14 @@ const ShortcutsModal = ({ isOpen, onClose }) => (
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="w-full max-w-md p-6 bg-base-200 rounded-xl shadow-xl"
+          className="w-full max-w-md p-6 bg-[#3B4252] rounded-xl shadow-xl"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between mb-4">
@@ -264,28 +288,29 @@ const BentoGrid = () => {
     {
       title: "Host Applications",
       description: "Manage and monitor your host applications",
-      icon: <Database className="w-6 h-6 text-info" />,
+      icon: <Database className="w-6 h-6 text-[#88C0D0]" />, // Frost 1
       className: "md:col-span-2",
       component: <HostApps />,
-      hoverColor: "hover:bg-info/20"
+      hoverColor: "hover:bg-[#88C0D0]/20"
     },
     {
       title: "Statistics",
       description: "View system statistics and analytics",
-      icon: <BarChart3 className="w-6 h-6 text-primary" />,
+      icon: <BarChart3 className="w-6 h-6 text-[#81A1C1]" />, // Frost 2
       className: "row-span-2",
       component: <Statistics />,
-      hoverColor: "hover:bg-primary/20"
+      hoverColor: "hover:bg-[#81A1C1]/20"
     },
     {
       title: "Wiki",
       description: "Access documentation and guides",
-      icon: <BookOpen className="w-6 h-6 text-secondary" />,
+      icon: <BookOpen className="w-6 h-6 text-[#5E81AC]" />, // Frost 3
       className: "md:col-span-2",
       component: <Wiki />,
-      hoverColor: "hover:bg-secondary/20"
+      hoverColor: "hover:bg-[#5E81AC]/20"
     }
   ];
+
 
   useEffect(() => {
     const handleKeyboard = (e) => {
@@ -324,25 +349,19 @@ const BentoGrid = () => {
 
   return (
     <>
-      <div className="grid md:grid-cols-4 gap-4">
+      <div className="grid md:grid-cols-4 gap-4 max-w-6xl mx-auto">
         {items.map((item, i) => (
           <motion.button 
             key={i}
             onClick={() => setActiveWindow(item)}
             className={cn(
-              "group relative overflow-hidden rounded-xl border border-border",
-              "bg-card/80 backdrop-blur-sm p-6",
-              "transition-all duration-300",
+              "group relative overflow-hidden rounded-xl border border-[#4C566A]",
+              "bg-[#3B4252]/80 backdrop-blur-sm p-4 hover:border-[#88C0D0]",
+              "transition-colors duration-200",
               item.className,
               item.hoverColor
             )}
-            whileHover={{ 
-              scale: 1.02,
-              transition: { duration: 0.2 }
-            }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
+            whileHover="hover"
           >
             <div className="relative z-10 h-full text-left">
               <motion.div 
@@ -357,22 +376,22 @@ const BentoGrid = () => {
                 <div className="rounded-lg p-2">
                   {item.icon}
                 </div>
-                <h3 className="font-semibold text-foreground">{item.title}</h3>
+                <h3 className="font-semibold text-[#ECEFF4]">{item.title}</h3>
               </motion.div>
               <motion.p 
-                className="mt-2 text-sm text-muted-foreground"
+                className="mt-2 text-sm text-[#D8DEE9]/80"
                 variants={{
                   hover: {
                     x: 10,
                     transition: { duration: 0.4, ease: "easeOut", delay: 0.1 }
                   }
                 }}
->
+              >
                 {item.description}
               </motion.p>
 
               {/* Command hint */}
-              <div className="absolute bottom-2 right-2 flex items-center gap-1 text-xs text-muted-foreground">
+              <div className="absolute bottom-2 right-2 flex items-center gap-1 text-xs text-[#D8DEE9]/50">
                 <Command className="w-3 h-3" />
                 <span>{i + 1}</span>
               </div>
@@ -405,7 +424,6 @@ const BentoGrid = () => {
   );
 };
 
-// Main Dashboard component
 export default function Dashboard() {
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
@@ -416,17 +434,29 @@ export default function Dashboard() {
         <meta name="description" content="Modern dashboard interface" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <div className="relative min-h-screen w-full overflow-hidden bg-background">
+      
+      <div className="relative min-h-screen w-full overflow-hidden">
         <NordicBackground />
+        
         <div className="relative w-full p-6">
-          <header className="max-w-6xl mx-auto flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <div className="max-w-6xl mx-auto mt-16">
+          <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-[#ECEFF4]">Dashboard</h1>
+          <p className="text-[#D8DEE9]/80 mt-2">
+            Press <kbd className="px-1.5 py-0.5 rounded bg-[#4C566A] text-sm">Ctrl + Space</kbd> to search or{' '}
+            <kbd className="px-1.5 py-0.5 rounded bg-[#4C566A] text-sm">?</kbd> for shortcuts
+          </p>
+        </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 rounded-lg hover:bg-[#434C5E] transition-colors"
+                onClick={() => setIsShortcutsOpen(true)}
+              >
+                <Keyboard className="w-5 h-5 text-[#D8DEE9]" />
+              </motion.button>
             </div>
-          </header>
-
-          <div className="max-w-6xl mx-auto">
             <BentoGrid />
           </div>
         </div>
@@ -438,14 +468,14 @@ export default function Dashboard() {
           height: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: hsl(var(--base-200));
+          background: #3B4252;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: hsl(var(--base-300));
+          background: #4C566A;
           border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: hsl(var(--primary));
+          background: #81A1C1;
         }
       `}</style>
     </>

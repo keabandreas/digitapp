@@ -1,12 +1,19 @@
+// src/pages/api/remove-csv-row.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const nodeServerUrl = process.env.NEXT_PUBLIC_SCRIPT_SERVER_URL;
+
+  if (!nodeServerUrl) {
+    return res.status(500).json({ error: 'Server URL not configured' });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const response = await fetch('http://node:5000/api/remove-csv-row', {
+    const response = await fetch(`${nodeServerUrl}/api/remove-csv-row`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

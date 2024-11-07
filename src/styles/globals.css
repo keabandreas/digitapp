@@ -102,8 +102,189 @@
   }
 }
 
+.theme-rosepine {
+  /* Rose Pine Theme */
+  --primary: 245 50% 70%;         /* #c4a7e7 */
+  --primary-content: 249 22% 10%; /* #191724 */
+  --secondary: 2 55% 83%;         /* #ebbcba */
+  --secondary-content: 249 22% 10%;
+  --accent: 128 42% 71%;          /* #9ccfd8 */
+  --accent-content: 249 22% 10%;
+  --neutral: 245 50% 70%;
+  --neutral-content: 249 22% 10%;
+  
+  /* Base colors */
+  --base-100: 249 22% 10%;        /* #191724 */
+  --base-200: 248 21% 13%;        /* #1f1d2e */
+  --base-300: 247 23% 15%;        /* #26233a */
+  --base-content: 245 50% 91%;    /* #e0def4 */
+  
+  /* State colors */
+  --info: 210 34% 63%;            /* #31748f */
+  --info-content: 249 22% 10%;
+  --success: 128 42% 71%;         /* #9ccfd8 */
+  --success-content: 249 22% 10%;
+  --warning: 23 75% 66%;          /* #f6c177 */
+  --warning-content: 249 22% 10%;
+  --error: 343 76% 68%;           /* #eb6f92 */
+  --error-content: 249 22% 10%;
+
+  /* Custom colors */
+  --red: 343 76% 68%;
+  --green: 128 42% 71%;
+  --blue: 210 34% 63%;
+  --orange: 23 75% 66%;
+  --yellow: 35 88% 72%;
+  --purple: 267 68% 68%;
+}
+
+.theme-catppuccin {
+  /* Catppuccin (Mocha) Theme */
+  --primary: 316 72% 86%;         /* #f5c2e7 */
+  --primary-content: 224 27% 11%; /* #1e1e2e */
+  --secondary: 266 85% 82%;       /* #cba6f7 */
+  --secondary-content: 224 27% 11%;
+  --accent: 189 71% 73%;          /* #89dceb */
+  --accent-content: 224 27% 11%;
+  --neutral: 249 37% 74%;         /* #9399b2 */
+  --neutral-content: 224 27% 11%;
+  
+  /* Base colors */
+  --base-100: 224 27% 11%;        /* #1e1e2e */
+  --base-200: 222 25% 14%;        /* #232634 */
+  --base-300: 220 23% 16%;        /* #292c3c */
+  --base-content: 226 64% 88%;    /* #cdd6f4 */
+  
+  /* State colors */
+  --info: 189 71% 73%;            /* #89dceb */
+  --info-content: 224 27% 11%;
+  --success: 152 61% 82%;         /* #a6e3a1 */
+  --success-content: 224 27% 11%;
+  --warning: 35 86% 77%;          /* #f9e2af */
+  --warning-content: 224 27% 11%;
+  --error: 343 81% 75%;           /* #f38ba8 */
+  --error-content: 224 27% 11%;
+
+  /* Custom colors */
+  --red: 343 81% 75%;
+  --green: 152 61% 82%;
+  --blue: 189 71% 73%;
+  --orange: 24 88% 78%;
+  --yellow: 35 86% 77%;
+  --purple: 266 85% 82%;
+}
+
+.theme-onedark {
+  /* One Dark Theme */
+  --primary: 207 82% 66%;         /* #61afef */
+  --primary-content: 220 13% 18%; /* #282c34 */
+  --secondary: 301 63% 70%;       /* #c678dd */
+  --secondary-content: 220 13% 18%;
+  --accent: 39 100% 71%;          /* #e5c07b */
+  --accent-content: 220 13% 18%;
+  --neutral: 220 13% 55%;         /* #828997 */
+  --neutral-content: 220 13% 18%;
+  
+  /* Base colors */
+  --base-100: 220 13% 18%;        /* #282c34 */
+  --base-200: 220 13% 21%;        /* #2c323c */
+  --base-300: 222 14% 24%;        /* #353b45 */
+  --base-content: 220 14% 71%;    /* #abb2bf */
+  
+  /* State colors */
+  --info: 207 82% 66%;            /* #61afef */
+  --info-content: 220 13% 18%;
+  --success: 145 58% 55%;         /* #98c379 */
+  --success-content: 220 13% 18%;
+  --warning: 39 100% 71%;         /* #e5c07b */
+  --warning-content: 220 13% 18%;
+  --error: 355 65% 65%;           /* #e06c75 */
+  --error-content: 220 13% 18%;
+
+  /* Custom colors */
+  --red: 355 65% 65%;
+  --green: 145 58% 55%;
+  --blue: 207 82% 66%;
+  --orange: 355 65% 65%;
+  --yellow: 39 100% 71%;
+  --purple: 301 63% 70%;
+}
+
+.theme-kanagawa {
+  /* Kanagawa Theme */
+  --primary: 195 45% 70%;         /* #7aa2f7 */
+  --primary-content: 234 15% 11%; /* #1f1f28 */
+  --secondary: 320 35% 70%;       /* #957fb8 */
+  --secondary-content: 234 15% 11%;
+  --accent: 160 25% 65%;          /* #76946a */
+  --accent-content: 234 15% 11%;
+  --neutral: 220 8% 58%;          /* #8a8980 */
+  --neutral-content: 234 15% 11%;
+  
+  /* Base colors */
+  --base-100: 234 15% 11%;        /* #1f1f28 */
+  --base-200: 235 15% 15%;        /* #2a2a37 */
+  --base-300: 235 13% 18%;        /* #2d2d3c */
+  --base-content: 220 22% 80%;    /* #c8c5b8 */
+  
+  /* State colors */
+  --info: 195 45% 70%;            /* #7aa2f7 */
+  --info-content: 234 15% 11%;
+  --success: 135 35% 55%;         /* #76946a */
+  --success-content: 234 15% 11%;
+  --warning: 35 85% 65%;          /* #dca561 */
+  --warning-content: 234 15% 11%;
+  --error: 0 60% 65%;             /* #c34043 */
+  --error-content: 234 15% 11%;
+
+  /* Custom colors */
+  --red: 0 60% 65%;
+  --green: 135 35% 55%;
+  --blue: 195 45% 70%;
+  --orange: 25 90% 65%;
+  --yellow: 35 85% 65%;
+  --purple: 320 35% 70%;
+}
+
+.theme-dracula {
+  /* Dracula Theme */
+  --primary: 326 100% 74%;        /* #ff79c6 */
+  --primary-content: 231 15% 18%; /* #282a36 */
+  --secondary: 265 89% 78%;       /* #bd93f9 */
+  --secondary-content: 231 15% 18%;
+  --accent: 135 94% 65%;          /* #50fa7b */
+  --accent-content: 231 15% 18%;
+  --neutral: 260 20% 40%;         /* #6272a4 */
+  --neutral-content: 231 15% 18%;
+  
+  /* Base colors */
+  --base-100: 231 15% 18%;        /* #282a36 */
+  --base-200: 232 14% 21%;        /* #343746 */
+  --base-300: 230 15% 24%;        /* #44475a */
+  --base-content: 60 30% 96%;     /* #f8f8f2 */
+  
+  /* State colors */
+  --info: 225 27% 51%;            /* #6272a4 */
+  --info-content: 231 15% 18%;
+  --success: 135 94% 65%;         /* #50fa7b */
+  --success-content: 231 15% 18%;
+  --warning: 31 100% 71%;         /* #ffb86c */
+  --warning-content: 231 15% 18%;
+  --error: 0 100% 67%;            /* #ff5555 */
+  --error-content: 231 15% 18%;
+
+  /* Custom colors */
+  --red: 0 100% 67%;
+  --green: 135 94% 65%;
+  --blue: 191 97% 77%;
+  --orange: 31 100% 71%;
+  --yellow: 65 92% 76%;
+  --purple: 265 89% 78%;
+}
+
+/* Your existing utilities */
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.text-balance {
+  text-wrap: balance;
+}
 }

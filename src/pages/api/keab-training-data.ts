@@ -1,8 +1,15 @@
+// src/pages/api/keab-training-data.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const nodeServerUrl = process.env.NEXT_PUBLIC_SCRIPT_SERVER_URL;
+
+  if (!nodeServerUrl) {
+    return res.status(500).json({ error: 'Server URL not configured' });
+  }
+
   try {
-    const response = await fetch('http://node:5000/api/keab-training-data')
+    const response = await fetch(`${nodeServerUrl}/api/keab-training-data`)
     const data = await response.text()
     
     if (!response.ok) {
