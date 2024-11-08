@@ -3,7 +3,7 @@ import { API_URL } from '@/config'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const response = await fetch(`${API_URL}/api/statistics/keab-training-data`);
+    const response = await fetch(`${API_URL}/api/keab-training-data`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }

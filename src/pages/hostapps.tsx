@@ -5,10 +5,16 @@ import SftpUserCreationForm from '@/components/hostapps/SftpUserCreationForm'
 import { VideoProcessorCard } from '@/components/hostapps/VideoProcessorCard'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { UserPlus } from "lucide-react"
-import { openVideoProcessor, VideoProcessorDialog, PasswordPromptDialog } from '@/pages/hostapps/videoProcessor'
+import { 
+  openVideoProcessor, 
+  VideoProcessorDialog, 
+  PasswordPromptDialog, 
+  useVideoProcessorStore 
+} from '@/pages/hostapps/videoProcessor'
 
 export default function HostApplications() {
   const [isSftpFormOpen, setIsSftpFormOpen] = useState(false)
+  const processingState = useVideoProcessorStore((state) => state.processingState)
 
   return (
     <div className="container mx-auto p-4">
@@ -33,7 +39,7 @@ export default function HostApplications() {
 
         <VideoProcessorCard
           onClick={openVideoProcessor}
-          processingState={null}
+          processingState={processingState}
         />
       </div>
 
@@ -49,7 +55,6 @@ export default function HostApplications() {
         </DialogContent>
       </Dialog>
 
-      {/* Global dialogs */}
       <VideoProcessorDialog />
       <PasswordPromptDialog />
     </div>

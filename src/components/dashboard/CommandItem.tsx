@@ -1,7 +1,7 @@
 // @/components/dashboard/CommandItem.tsx
 import { Command } from 'cmdk';
 import { FileCode, Library, Tags } from 'lucide-react';
-import { CommandItem as CommandItemType } from '@/components/dashboard/types/index';
+import { CommandItem as CommandItemType } from '@/components/dashboard/types';
 
 interface CommandItemProps {
   command: CommandItemType;

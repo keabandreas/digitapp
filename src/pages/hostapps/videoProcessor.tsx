@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from 'react'
 import { create } from "zustand"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { HandbrakeProcessorForm } from '@/components/hostapps/HandbrakeProcessorForm'
 import { toast } from "sonner"
 
@@ -38,12 +41,16 @@ export const usePasswordPromptStore = create<PasswordPromptStore>((set) => ({
 // Video Processing Dialog Store
 interface VideoProcessorStore {
   isOpen: boolean
+  processingState: ProcessingState | null
   setIsOpen: (isOpen: boolean) => void
+  setProcessingState: (state: ProcessingState | null) => void
 }
 
 export const useVideoProcessorStore = create<VideoProcessorStore>((set) => ({
   isOpen: false,
-  setIsOpen: (isOpen) => set({ isOpen })
+  processingState: null,
+  setIsOpen: (isOpen) => set({ isOpen }),
+  setProcessingState: (state) => set({ processingState: state })
 }))
 
 export const PROCESSING_STEPS: ProcessingStep[] = [
@@ -65,11 +72,185 @@ export const PROCESSING_STEPS: ProcessingStep[] = [
   }
 ]
 
-// Video Processing Component
+// Core processing function
+type ProcessVideoParams = {
+  file: File
+  presetIndex: number
+  sftpPassword: string
+  onProgressUpdate: (state: ProcessingState) => void
+  onComplete: () => void
+  onError: (error: string) => void
+}
+
+async function processVideo({
+  file,
+  presetIndex,
+  sftpPassword,
+  onProgressUpdate,
+  onComplete,
+  onError
+}: ProcessVideoParams) {
+  let uploadInterval: NodeJS.Timeout
+  let processInterval: NodeJS.Timeout
+  let finalizationInterval: NodeJS.Timeout
+
+  try {
+    onProgressUpdate({
+      isProcessing: true,
+      currentStep: 0,
+      progress: 0,
+      steps: PROCESSING_STEPS
+    })
+
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('password', sftpPassword)
+
+    uploadInterval = setInterval(() => {
+      onProgressUpdate((prev) => ({
+        ...prev,
+        progress: Math.min(prev.progress + 1, 25)
+      }))
+    }, 100)
+
+    const uploadResponse = await fetch('/api/hostapps/handbrake?action=upload_file', {
+      method: 'POST',
+      body: formData
+    })
+
+    clearInterval(uploadInterval)
+
+    if (!uploadResponse.ok) {
+      const data = await uploadResponse.json()
+      throw new Error(data.error || data.details || 'Upload failed')
+    }
+
+    onProgressUpdate({
+      isProcessing: true,
+      currentStep: 1,
+      progress: 25,
+      steps: PROCESSING_STEPS
+    })
+
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    onProgressUpdate({
+      isProcessing: true,
+      currentStep: 2,
+      progress: 30,
+      steps: PROCESSING_STEPS
+    })
+
+    processInterval = setInterval(() => {
+      onProgressUpdate((prev) => ({
+        ...prev,
+        progress: Math.min(prev.progress + 0.5, 90)
+      }))
+    }, 200)
+
+    const processResponse = await fetch('/api/hostapps/handbrake?action=process_file', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        filename: file.name,
+        preset_index: presetIndex,
+        password: sftpPassword
+      })
+    })
+
+    clearInterval(processInterval)
+
+    if (!processResponse.ok) {
+      throw new Error('Processing failed')
+    }
+
+    onProgressUpdate({
+      isProcessing: true,
+      currentStep: 3,
+      progress: 95,
+      steps: PROCESSING_STEPS
+    })
+
+    finalizationInterval = setInterval(() => {
+      onProgressUpdate((prev) => ({
+        ...prev,
+        progress: Math.min(prev.progress + 1, 100)
+      }))
+    }, 100)
+
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    clearInterval(finalizationInterval)
+    
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    onComplete()
+
+  } catch (error) {
+    if (uploadInterval) clearInterval(uploadInterval)
+    if (processInterval) clearInterval(processInterval)
+    if (finalizationInterval) clearInterval(finalizationInterval)
+
+    onError(error instanceof Error ? error.message : "Processing failed")
+  }
+}
+
+// Password Prompt Component
+export function PasswordPromptDialog() {
+  const [password, setPassword] = useState("")
+  const { isOpen, setIsOpen, setPassword: storePassword, reset } = usePasswordPromptStore()
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    storePassword(password)
+    setPassword("")
+    setIsOpen(false)
+  }
+
+  const handleClose = () => {
+    setPassword("")
+    reset()
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) handleClose()
+    }}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Enter SFTP Password</DialogTitle>
+          <DialogDescription>
+            Please provide your SFTP password to continue.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button type="submit">Submit</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// Video Processor Dialog Component
 export function VideoProcessorDialog() {
   const [presets, setPresets] = useState<Array<{ name: string; path: string | null }>>([])
-  const [processingState, setProcessingState] = useState<ProcessingState | null>(null)
-  const { isOpen, setIsOpen } = useVideoProcessorStore()
+  const { isOpen, setIsOpen, setProcessingState } = useVideoProcessorStore()
 
   useEffect(() => {
     if (isOpen) {
@@ -137,137 +318,12 @@ export function VideoProcessorDialog() {
   )
 }
 
-// Core processing function
-type ProcessVideoParams = {
-  file: File
-  presetIndex: number
-  sftpPassword: string
-  onProgressUpdate: (state: ProcessingState) => void
-  onComplete: () => void
-  onError: (error: string) => void
+// Helper function to open the video processor dialog
+export function openVideoProcessor() {
+  useVideoProcessorStore.getState().setIsOpen(true)
 }
 
-async function processVideo({
-  file,
-  presetIndex,
-  sftpPassword,
-  onProgressUpdate,
-  onComplete,
-  onError
-}: ProcessVideoParams) {
-  let uploadInterval: NodeJS.Timeout
-  let processInterval: NodeJS.Timeout
-  let finalizationInterval: NodeJS.Timeout
-
-  try {
-    // Initial state
-    onProgressUpdate({
-      isProcessing: true,
-      currentStep: 0,
-      progress: 0,
-      steps: PROCESSING_STEPS
-    })
-
-    // Handle upload
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('password', sftpPassword)
-
-    // Simulate upload progress
-    uploadInterval = setInterval(() => {
-      onProgressUpdate((prev) => ({
-        ...prev,
-        progress: Math.min(prev.progress + 1, 25)
-      }))
-    }, 100)
-
-    const uploadResponse = await fetch('/api/hostapps/handbrake?action=upload_file', {
-      method: 'POST',
-      body: formData
-    })
-
-    clearInterval(uploadInterval)
-
-    if (!uploadResponse.ok) {
-      const data = await uploadResponse.json()
-      throw new Error(data.error || data.details || 'Upload failed')
-    }
-
-    // Move to preparation
-    onProgressUpdate({
-      isProcessing: true,
-      currentStep: 1,
-      progress: 25,
-      steps: PROCESSING_STEPS
-    })
-
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    // Start processing
-    onProgressUpdate({
-      isProcessing: true,
-      currentStep: 2,
-      progress: 30,
-      steps: PROCESSING_STEPS
-    })
-
-    processInterval = setInterval(() => {
-      onProgressUpdate((prev) => ({
-        ...prev,
-        progress: Math.min(prev.progress + 0.5, 90)
-      }))
-    }, 200)
-
-    const processResponse = await fetch('/api/hostapps/handbrake?action=process_file', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        filename: file.name,
-        preset_index: presetIndex,
-        password: sftpPassword
-      })
-    })
-
-    clearInterval(processInterval)
-
-    if (!processResponse.ok) {
-      throw new Error('Processing failed')
-    }
-
-    // Move to finalization
-    onProgressUpdate({
-      isProcessing: true,
-      currentStep: 3,
-      progress: 95,
-      steps: PROCESSING_STEPS
-    })
-
-    finalizationInterval = setInterval(() => {
-      onProgressUpdate((prev) => ({
-        ...prev,
-        progress: Math.min(prev.progress + 1, 100)
-      }))
-    }, 100)
-
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    clearInterval(finalizationInterval)
-    
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    onComplete()
-
-  } catch (error) {
-    if (uploadInterval) clearInterval(uploadInterval)
-    if (processInterval) clearInterval(processInterval)
-    if (finalizationInterval) clearInterval(finalizationInterval)
-
-    onError(error instanceof Error ? error.message : "Processing failed")
-  }
-}
-
-// Public interface
+// Public interface for video processing
 type StartVideoProcessingParams = {
   file: File
   presetIndex: number
@@ -314,9 +370,4 @@ export function startVideoProcessing({
       }
     })
   })
-}
-
-// Helper function to open the video processor dialog
-export function openVideoProcessor() {
-  useVideoProcessorStore.getState().setIsOpen(true)
 }

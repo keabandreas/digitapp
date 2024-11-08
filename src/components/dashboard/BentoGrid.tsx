@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import Window from './Window';
 import ShortcutsModal from './ShortcutsModal';
 import CommandPalette from './CommandPalette';
-import { BentoItem } from './types/bento';
+import { BentoItem } from '@/components/dashboard/types';
 
 const HostApps = dynamic(() => import('@/pages/hostapps'), { ssr: false });
 const Statistics = dynamic(() => import('@/pages/statistics'), { ssr: false });
