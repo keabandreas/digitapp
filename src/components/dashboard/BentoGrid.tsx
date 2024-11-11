@@ -1,12 +1,11 @@
-// @/components/dashboard/BentoGrid.tsx
+// src/components/dashboard/BentoGrid.tsx
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Database, BarChart3, BookOpen, Command as CommandIcon } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { Database, BarChart3, BookOpen } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import Window from './Window';
 import ShortcutsModal from './ShortcutsModal';
-import CommandPalette from './CommandPalette';
 import { BentoItem } from '@/components/dashboard/types';
 
 const HostApps = dynamic(() => import('@/pages/hostapps'), { ssr: false });
@@ -16,7 +15,6 @@ const Wiki = dynamic(() => import('@/pages/wiki'), { ssr: false });
 export const BentoGrid = () => {
   const [activeWindow, setActiveWindow] = useState<BentoItem | null>(null);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   const items: BentoItem[] = [
     {
@@ -53,11 +51,6 @@ export const BentoGrid = () => {
         if (num > 0 && num <= items.length) {
           setActiveWindow(items[num - 1]);
         }
-      }
-      
-      if (e.key === ' ' && e.ctrlKey) {
-        e.preventDefault();
-        setIsCommandPaletteOpen(true);
       }
       
       if (e.key === '?') {
@@ -118,11 +111,6 @@ export const BentoGrid = () => {
               >
                 {item.description}
               </motion.p>
-
-              <div className="absolute bottom-2 right-2 flex items-center gap-1 text-xs text-muted-foreground">
-                <CommandIcon className="w-3 h-3" />
-                <span>{i + 1}</span>
-              </div>
             </div>
           </motion.button>
         ))}
@@ -139,14 +127,6 @@ export const BentoGrid = () => {
       <ShortcutsModal 
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}
-      />
-
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-        onCommandSelect={(index) => {
-          setActiveWindow(items[index]);
-        }}
       />
     </>
   );

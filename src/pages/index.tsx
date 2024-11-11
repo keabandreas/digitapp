@@ -1,4 +1,4 @@
-// pages/index.tsx
+// src/pages/index.tsx
 import Head from 'next/head';
 import NordicBackground from '@/components/dashboard/NordicBackground';
 import BentoGrid from '@/components/dashboard/BentoGrid';
@@ -19,7 +19,7 @@ export default function Dashboard() {
             <div>
               <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
               <p className="text-[#D8DEE9]/80 mt-2">
-                Press <kbd className="px-1.5 py-0.5 rounded bg-[#4C566A] text-sm">⌘/Ctrl + Space</kbd> to search or <kbd className="px-1.5 py-0.5 rounded bg-[#4C566A] text-sm">?</kbd> for shortcuts
+                Press <kbd className="px-1.5 py-0.5 rounded bg-[#4C566A] text-sm">Alt + 1-3</kbd> to open apps  or <kbd className="px-1.5 py-0.5 rounded bg-[#4C566A] text-sm">?</kbd> for shortcuts
               </p>
             </div>
           </header>

@@ -1,278 +1,126 @@
-import { useState, useEffect, useCallback } from 'react'
-import WikiDocumentList from '@/components/wiki/WikiDocumentList'
-import WikiDocument from '@/components/wiki/WikiDocument'
-import dynamic from 'next/dynamic'
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { PasswordPromptModal } from '@/components/wiki/PasswordPromptModal'
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import AddDocument from '@/components/wiki/AddDocument'
-import { FileUpload } from '@/components/wiki/FileUpload'
-import { toast } from 'react-hot-toast'
-
-const MarkdownEditor = dynamic(() => import('@/components/wiki/MarkdownEditor'), { ssr: false })
-
-interface Document {
-  id: number
-  title: string
-  content: string
-  restricted: boolean
-  category: string
-}
+// @/pages/wiki.tsx
+import { useState, useCallback } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { WikiHeader } from '@/components/wiki/WikiHeader';
+import WikiDocumentList from '@/components/wiki/WikiDocumentList';
+import { WikiContent } from '@/components/wiki/WikiContent';
+import { WikiDialogs } from '@/components/wiki/WikiDialogs';
+import { useDocuments } from '@/lib/hooks/useDocuments';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { useSearch } from '@/lib/hooks/useSearch';
+import { Document } from '@/lib/types/wiki';
 
 export default function WikiPage() {
-  const [documents, setDocuments] = useState<Document[]>([])
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
-  const [isUnlocked, setIsUnlocked] = useState(false)
-  const [isPasswordPromptOpen, setIsPasswordPromptOpen] = useState(false)
-  const [isAddDocumentOpen, setIsAddDocumentOpen] = useState(false)
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
-  const [categories, setCategories] = useState<string[]>([])
-  const [isEditing, setIsEditing] = useState(false)
+  const {
+    documents,
+    categories,
+    isLoading,
+    createDocument,
+    updateDocument,
+    deleteDocument
+  } = useDocuments();
 
-  const fetchDocuments = useCallback(async () => {
-    try {
-      const response = await fetch('/api/wiki/wiki')
-      if (response.ok) {
-        const data = await response.json()
-        setDocuments(data)
-        const allCategories = [...new Set(data.map((doc: Document) => doc.category))].sort()
-        setCategories(allCategories)
-      } else {
-        console.error('Failed to fetch documents')
-      }
-    } catch (error) {
-      console.error('Error fetching documents:', error)
-    }
-  }, [])
+  const {
+    isUnlocked,
+    isPasswordPromptOpen,
+    setIsPasswordPromptOpen,
+    handleUnlockToggle,
+    handlePasswordSubmit
+  } = useAuth();
 
-  useEffect(() => {
-    fetchDocuments()
-  }, [fetchDocuments])
+  const {
+    isSearchOpen,
+    setIsSearchOpen,
+    searchResults,
+    setSearchResults,
+    handleSearch
+  } = useSearch(documents);
 
-  const handleDocumentSelect = useCallback(async (id: number) => {
-    const document = documents.find(doc => doc.id === id)
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [isAddDocumentOpen, setIsAddDocumentOpen] = useState(false);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<{ [key: string]: boolean }>({});
+
+  useHotkeys('ctrl+space', (e) => {
+    e.preventDefault();
+    setIsSearchOpen(true);
+  }, []);
+
+  const handleDocumentSelect = useCallback((id: number) => {
+    const document = documents.find(doc => doc.id === id);
     if (document) {
-      setSelectedDocument(document)
-      setIsEditing(false)
+      setSelectedDocument(document);
+      setIsEditing(false);
     }
-  }, [documents])
-
-  const handleDocumentUpdate = useCallback(async (id: number, title: string, content: string) => {
-    try {
-      const response = await fetch('/api/wiki/wiki', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, title, content }),
-      })
-      if (response.ok) {
-        const updatedDoc = await response.json()
-        setDocuments(prevDocs => prevDocs.map(doc => doc.id === id ? updatedDoc : doc))
-        setSelectedDocument(updatedDoc)
-      } else {
-        console.error('Failed to update document')
-      }
-    } catch (error) {
-      console.error('Error updating document:', error)
-    }
-  }, [])
-
-  const handleUnlockToggle = useCallback((checked: boolean) => {
-    if (checked && !isUnlocked) {
-      setIsPasswordPromptOpen(true)
-    } else if (!checked && isUnlocked) {
-      setIsUnlocked(false)
-    }
-  }, [isUnlocked])
-
-  const handlePasswordSubmit = useCallback(async (password: string) => {
-    try {
-      const response = await fetch('/api/wiki/verify-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-      })
-
-      if (response.ok) {
-        setIsUnlocked(true)
-        setIsPasswordPromptOpen(false)
-      } else {
-        alert('Incorrect password')
-      }
-    } catch (error) {
-      console.error('Error during authentication:', error)
-    }
-  }, [])
-
-  const handleCreateDocument = useCallback(async (title: string, category: string, restricted: boolean, content: string = '') => {
-    try {
-      const response = await fetch('/api/wiki/wiki', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, category, restricted, content }),
-      })
-      if (response.ok) {
-        const newDocument = await response.json()
-        await fetchDocuments()
-        setIsAddDocumentOpen(false)
-        setSelectedDocument(newDocument)
-        toast.success('Document created successfully')
-      } else {
-        console.error('Failed to create document')
-        toast.error('Failed to create document')
-      }
-    } catch (error) {
-      console.error('Error creating document:', error)
-      toast.error('Error creating document')
-    }
-  }, [fetchDocuments])
-
-  const handleFileProcessed = useCallback(async (data: { title: string, content: string, category: string, restricted: boolean }) => {
-    try {
-      const newDocument = await handleCreateDocument(data.title, data.category, data.restricted, data.content)
-      setIsUploadDialogOpen(false)
-      setSelectedDocument(newDocument)
-      fetchDocuments()
-    } catch (error) {
-      console.error('Error processing file:', error)
-      toast.error('Error processing file')
-    }
-  }, [handleCreateDocument, fetchDocuments])
-
-  const handleEditDocument = useCallback((id: number) => {
-    const document = documents.find(doc => doc.id === id)
-    if (document) {
-      setSelectedDocument(document)
-      setIsEditing(true)
-    }
-  }, [documents])
-
-  const handleDeleteDocument = useCallback(async (id: number) => {
-    try {
-      const response = await fetch(`/api/wiki/wiki/${id}`, {
-        method: 'DELETE',
-      })
-      if (response.ok) {
-        setDocuments(docs => docs.filter(doc => doc.id !== id))
-        if (selectedDocument && selectedDocument.id === id) {
-          setSelectedDocument(null)
-          setIsEditing(false)
-        }
-        toast.success('Document deleted successfully')
-      } else {
-        console.error('Failed to delete document')
-        toast.error('Failed to delete document')
-      }
-    } catch (error) {
-      console.error('Error deleting document:', error)
-      toast.error('Error deleting document')
-    }
-  }, [selectedDocument])
+  }, [documents]);
 
   const canEditDocument = useCallback((document: Document) => {
-    return isUnlocked || !document.restricted
-  }, [isUnlocked])
-
-  const handleCancelEdit = useCallback(() => {
-    setIsEditing(false)
-  }, [])
+    return isUnlocked || !document.restricted;
+  }, [isUnlocked]);
 
   return (
     <div className="flex flex-col h-screen w-full bg-base-300 text-foreground">
-      <div className="flex-shrink-0 p-4 bg-base-300 border-b">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Wiki Documents</h1>
-          <div className="flex items-center space-x-4">
-            <Button onClick={() => setIsAddDocumentOpen(true)}>Add New Page</Button>
-            <Button variant="outline" onClick={() => setIsUploadDialogOpen(true)}>Upload Word Document</Button>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="lock-mode"
-                checked={isUnlocked}
-                onCheckedChange={handleUnlockToggle}
-              />
-              <Label htmlFor="lock-mode">
-                {isUnlocked ? 'Unlocked' : 'Locked'}
-              </Label>
-            </div>
-          </div>
-        </div>
-      </div>
+      <WikiHeader
+        isUnlocked={isUnlocked}
+        onUnlockToggle={handleUnlockToggle}
+        onAddDocument={() => setIsAddDocumentOpen(true)}
+        onUploadDocument={() => setIsUploadDialogOpen(true)}
+      />
+
       <div className="flex-1 overflow-hidden flex">
         <div className="w-1/4 border-r overflow-auto">
-          <WikiDocumentList
-            documents={documents}
-            onDocumentSelect={handleDocumentSelect}
-            onEditDocument={handleEditDocument}
-            onDeleteDocument={handleDeleteDocument}
-            isUnlocked={isUnlocked}
-            onDocumentsChange={fetchDocuments}
-            selectedDocumentId={selectedDocument?.id}
-            canEditDocument={canEditDocument}
-          />
-        </div>
-        <div className="w-3/4 overflow-auto flex flex-col">
-          {selectedDocument ? (
-            <div className="flex-1 overflow-auto">
-              {isEditing ? (
-                <div className="h-full flex flex-col">
-                  <MarkdownEditor
-                    documentId={selectedDocument.id}
-                    initialTitle={selectedDocument.title}
-                    initialContent={selectedDocument.content}
-                    onSave={(title, content) => {
-                      handleDocumentUpdate(selectedDocument.id, title, content)
-                      setIsEditing(false)
-                    }}
-                    onCancel={handleCancelEdit}
-                  />
-                </div>
-              ) : (
-                <div className="p-4">
-                  <WikiDocument
-                    document={selectedDocument}
-                    isUnlocked={isUnlocked}
-                    onDocumentUpdate={handleDocumentUpdate}
-                  />
-                </div>
-              )}
-            </div>
+          {isLoading ? (
+            <div className="p-4 text-center">Loading documents...</div>
           ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-              Select a document to view its content
-            </div>
+            <WikiDocumentList
+              documents={documents}
+              onDocumentSelect={handleDocumentSelect}
+              onEditDocument={(id) => {
+                handleDocumentSelect(id);
+                setIsEditing(true);
+              }}
+              onDeleteDocument={deleteDocument}
+              isUnlocked={isUnlocked}
+              selectedDocumentId={selectedDocument?.id}
+              canEditDocument={canEditDocument}
+              expandedCategories={expandedCategories}
+              setExpandedCategories={setExpandedCategories}
+            />
           )}
         </div>
-      </div>
-      <PasswordPromptModal
-        isOpen={isPasswordPromptOpen}
-        onClose={() => {
-          setIsPasswordPromptOpen(false)
-          setIsUnlocked(false)
-        }}
-        onSubmit={handlePasswordSubmit}
-      />
-      <Dialog open={isAddDocumentOpen} onOpenChange={setIsAddDocumentOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Page</DialogTitle>
-          </DialogHeader>
-          <AddDocument
-            categories={categories}
-            onCreateDocument={handleCreateDocument}
-            onClose={() => setIsAddDocumentOpen(false)}
+
+        <div className="w-3/4 overflow-auto flex flex-col">
+          <WikiContent
+            selectedDocument={selectedDocument}
+            isEditing={isEditing}
+            isUnlocked={isUnlocked}
+            onUpdateDocument={updateDocument}
+            setIsEditing={setIsEditing}
           />
-        </DialogContent>
-      </Dialog>
-      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Upload Word Document</DialogTitle>
-          </DialogHeader>
-          <FileUpload onFileProcessed={handleFileProcessed} />
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
+
+      <WikiDialogs
+        isPasswordPromptOpen={isPasswordPromptOpen}
+        isAddDocumentOpen={isAddDocumentOpen}
+        isUploadDialogOpen={isUploadDialogOpen}
+        isSearchOpen={isSearchOpen}
+        searchResults={searchResults}
+        categories={categories}
+        documents={documents}
+        onPasswordSubmit={handlePasswordSubmit}
+        onCreateDocument={createDocument}
+        onDocumentSelect={handleDocumentSelect}
+        onSearch={handleSearch}
+        setIsPasswordPromptOpen={setIsPasswordPromptOpen}
+        setIsAddDocumentOpen={setIsAddDocumentOpen}
+        setIsUploadDialogOpen={setIsUploadDialogOpen}
+        setIsSearchOpen={setIsSearchOpen}
+        setSearchResults={setSearchResults}
+        setSelectedDocument={setSelectedDocument}
+        setExpandedCategories={setExpandedCategories}
+      />
     </div>
-  )
+  );
 }

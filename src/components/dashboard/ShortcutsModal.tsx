@@ -36,7 +36,6 @@ export const ShortcutsModal = ({ isOpen, onClose }: ShortcutsModalProps) => (
           <div className="space-y-3">
             {[
               { keys: ["Alt", "1-3"], description: "Open applications" },
-              { keys: ["Ctrl", "Space"], description: "Open search" },
               { keys: ["?"], description: "Show shortcuts" },
               { keys: ["Esc"], description: "Close windows" },
             ].map((shortcut, i) => (

@@ -1,6 +1,4 @@
-// @/components/dashboard/CommandItem.tsx
-import { Command } from 'cmdk';
-import { FileCode, Library, Tags } from 'lucide-react';
+// src/components/dashboard/CommandItem.tsx
 import { CommandItem as CommandItemType } from '@/components/dashboard/types';
 
 interface CommandItemProps {
@@ -16,8 +14,6 @@ export const CommandItem = ({ command, onSelect }: CommandItemProps) => (
   >
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        {command.category === 'scripts' && <FileCode className="h-4 w-4 text-[#D8DEE9]" />}
-        {command.category === 'functions' && <Library className="h-4 w-4 text-[#D8DEE9]" />}
         <span className="font-medium text-[#ECEFF4]">{command.name}</span>
       </div>
       {command.shortcut && (
@@ -28,32 +24,6 @@ export const CommandItem = ({ command, onSelect }: CommandItemProps) => (
     </div>
     {command.description && (
       <p className="text-sm text-[#D8DEE9]/70 mt-1">{command.description}</p>
-    )}
-    {(command.module || command.path) && (
-      <div className="flex items-center gap-2 mt-1 text-xs text-[#D8DEE9]/70">
-        {command.module && (
-          <span className="flex items-center gap-1">
-            <Library className="h-3 w-3" />
-            {command.module}
-          </span>
-        )}
-        {command.path && (
-          <span className="flex items-center gap-1">
-            <FileCode className="h-3 w-3" />
-            {command.path}
-          </span>
-        )}
-      </div>
-    )}
-    {command.tags && (
-      <div className="flex items-center gap-1 mt-1">
-        <Tags className="h-3 w-3 text-[#D8DEE9]/70" />
-        {command.tags.map(tag => (
-          <span key={tag} className="text-xs text-[#D8DEE9]/70">
-            #{tag}
-          </span>
-        ))}
-      </div>
     )}
   </Command.Item>
 );

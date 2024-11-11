@@ -6,10 +6,7 @@ export interface CommandItem {
   description?: string;
   shortcut?: string;
   action: () => void;
-  category: 'navigation' | 'actions' | 'settings' | 'scripts' | 'functions';
-  tags?: string[];
-  path?: string;
-  module?: string;
+  category: 'navigation';
 }
 
 export interface BentoItem {
