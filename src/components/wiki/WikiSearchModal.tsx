@@ -186,7 +186,7 @@ export default function WikiSearchModal({
               initial={{ scale: 0.95, opacity: 0, y: -20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: -20 }}
-              className="w-full max-w-3xl mx-4 bg-background rounded-xl shadow-2xl overflow-hidden"
+              className="w-full max-w-5xl mx-4 bg-background rounded-xl shadow-2xl overflow-hidden"
               onClick={stopPropagation}
             >
               <div className="p-6 border-b">
@@ -197,7 +197,7 @@ export default function WikiSearchModal({
                     value={inputValue}
                     onChange={handleInputChange}
                     placeholder="Search documents..."
-                    className="pl-12 py-6 text-lg"
+                    className="pl-20 py-6 text-lg"
                     autoFocus
                   />
                   <Search className="w-6 h-6 absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
@@ -206,54 +206,56 @@ export default function WikiSearchModal({
 
               <div 
                 ref={resultsRef}
-                className="max-h-[60vh] overflow-y-auto"
+                className="max-h-[400px] overflow-y-auto"
               >
                 {searchResults.length === 0 && inputValue.trim() !== '' && (
                   <div className="p-8 text-center text-lg text-muted-foreground">
                     No results found
                   </div>
                 )}
-                {searchResults.slice(0, 10).map((result, index) => (
-                  <div
-                    key={result.item.id}
-                    className={cn(
-                      "border-b last:border-b-0 hover:bg-muted/50 cursor-pointer p-6",
-                      selectedIndex === index && "bg-muted"
-                    )}
-                    onClick={() => {
-                      onResultSelect(result.item.id);
-                      expandToDocument?.(result.item.id);
-                      onClose();
-                    }}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <FileText className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-lg font-medium">
-                        {result.matches.find(m => m.key === 'title')
-                          ? highlightMatches(
-                              result.item.title,
-                              result.matches.find(m => m.key === 'title')!.indices
-                            )
-                          : result.item.title}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {result.item.category}
-                      </span>
-                    </div>
-                    {result.matches.find(m => m.key === 'content') && (
-                      <div className="text-base text-muted-foreground space-y-2 ml-8">
-                        {getMatchContext(
-                          result.item.content,
-                          result.matches.find(m => m.key === 'content')!.indices
-                        ).map((snippet, i) => (
-                          <div key={i}>
-                            {highlightMatches(snippet.text, snippet.indices)}
-                          </div>
-                        ))}
+                <div className="h-auto">
+                  {searchResults.slice(0, 10).map((result, index) => (
+                    <div
+                      key={result.item.id}
+                      className={cn(
+                        "border-b last:border-b-0 hover:bg-muted/50 cursor-pointer p-6 min-h-[100px]",
+                        selectedIndex === index && "bg-muted"
+                      )}
+                      onClick={() => {
+                        onResultSelect(result.item.id);
+                        expandToDocument?.(result.item.id);
+                        onClose();
+                      }}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <FileText className="w-5 h-5 flex-shrink-0 text-muted-foreground" />
+                        <span className="text-lg font-medium truncate">
+                          {result.matches.find(m => m.key === 'title')
+                            ? highlightMatches(
+                                result.item.title,
+                                result.matches.find(m => m.key === 'title')!.indices
+                              )
+                            : result.item.title}
+                        </span>
+                        <span className="text-sm flex-shrink-0 text-muted-foreground">
+                          {result.item.category}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                ))}
+                      {result.matches.find(m => m.key === 'content') && (
+                        <div className="text-base text-muted-foreground ml-8 line-clamp-2">
+                          {getMatchContext(
+                            result.item.content,
+                            result.matches.find(m => m.key === 'content')!.indices
+                          ).map((snippet, i) => (
+                            <div key={i} className="line-clamp-1">
+                              {highlightMatches(snippet.text, snippet.indices)}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
                 {searchResults.length > 10 && (
                   <div className="p-4 text-center text-base text-muted-foreground">
                     {searchResults.length - 10} more results...

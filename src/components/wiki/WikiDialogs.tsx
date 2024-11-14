@@ -1,6 +1,6 @@
-// @/components/wiki/WikiDialogs.tsx
-// Manages all modal/dialog interactions
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useWiki } from '@/lib/context/WikiContext';
 import { PasswordPromptModal } from '@/components/wiki/PasswordPromptModal';
 import AddDocument from '@/components/wiki/AddDocument';
 import { FileUpload } from '@/components/wiki/FileUpload';
@@ -16,7 +16,7 @@ interface WikiDialogsProps {
   categories: string[];
   documents: Document[];
   onPasswordSubmit: (password: string) => Promise<void>;
-  onCreateDocument: (title: string, category: string, restricted: boolean, content: string) => Promise<void>;
+  onCreateDocument: (title: string, category: string, restricted: boolean, content?: string) => Promise<void>;
   onDocumentSelect: (id: number) => void;
   onSearch: (query: string) => void;
   setIsPasswordPromptOpen: (value: boolean) => void;
@@ -56,26 +56,6 @@ export function WikiDialogs({
         onSubmit={onPasswordSubmit}
       />
 
-      <WikiSearchModal
-        isOpen={isSearchOpen}
-        onClose={() => {
-          setIsSearchOpen(false);
-          setSearchResults([]);
-        }}
-        searchResults={searchResults}
-        onResultSelect={onDocumentSelect}
-        expandToDocument={(id) => {
-          const document = documents.find(doc => doc.id === id);
-          if (document) {
-            setExpandedCategories(prev => ({
-              ...prev,
-              [document.category]: true
-            }));
-          }
-        }}
-        onSearch={onSearch}
-      />
-
       <Dialog open={isAddDocumentOpen} onOpenChange={setIsAddDocumentOpen}>
         <DialogContent>
           <DialogHeader>
@@ -110,6 +90,26 @@ export function WikiDialogs({
           />
         </DialogContent>
       </Dialog>
+
+      <WikiSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => {
+          setIsSearchOpen(false);
+          setSearchResults([]);
+        }}
+        searchResults={searchResults}
+        onResultSelect={onDocumentSelect}
+        expandToDocument={(id) => {
+          const document = documents.find(doc => doc.id === id);
+          if (document) {
+            setExpandedCategories(prev => ({
+              ...prev,
+              [document.category]: true
+            }));
+          }
+        }}
+        onSearch={onSearch}
+      />
     </>
   );
 }

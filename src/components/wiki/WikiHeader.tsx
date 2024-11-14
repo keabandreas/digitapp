@@ -1,44 +1,53 @@
-// @/components/wiki/WikiHeader.tsx
-// Manages the top navigation and controls
+// src/components/wiki/WikiHeader.tsx
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { useWiki } from '@/lib/context/WikiContext';
 
-interface WikiHeaderProps {
-  isUnlocked: boolean;
-  onUnlockToggle: (checked: boolean) => void;
-  onAddDocument: () => void;
-  onUploadDocument: () => void;
-}
+export const WikiHeader = () => {
+  const { 
+    isUnlocked,
+    setIsUnlocked,
+    setIsPasswordPromptOpen,
+    isLoading 
+  } = useWiki();
 
-export const WikiHeader: React.FC<WikiHeaderProps> = ({
-  isUnlocked,
-  onUnlockToggle,
-  onAddDocument,
-  onUploadDocument
-}) => (
-  <div className="flex-shrink-0 p-4 bg-base-300 border-b">
-    <div className="flex items-center justify-between">
-      <h1 className="text-2xl font-bold">Wiki Documents</h1>
-      <p className="text-[#D8DEE9]/80 mt-2">
-        Press <kbd className="px-1.5 py-0.5 rounded bg-[#4C566A] text-sm">Ctrl + Space</kbd> to open apps
-      </p>
-      <div className="flex items-center space-x-4">
-        <Button onClick={onAddDocument}>Add New Page</Button>
-        <Button variant="outline" onClick={onUploadDocument}>
-          Upload Word Document
-        </Button>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="lock-mode"
-            checked={isUnlocked}
-            onCheckedChange={onUnlockToggle}
-          />
-          <Label htmlFor="lock-mode">
-            {isUnlocked ? 'Unlocked' : 'Locked'}
-          </Label>
+  const handleUnlockToggle = (checked: boolean) => {
+    if (checked && !isUnlocked) {
+      setIsPasswordPromptOpen(true);
+    } else if (!checked && isUnlocked) {
+      setIsUnlocked(false);
+    }
+  };
+
+  return (
+    <div className="flex-shrink-0 p-4 bg-base-300 border-b">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold">Wiki Documents</h1>
+          <p className="text-[#D8DEE9]/80">
+            Press <kbd className="px-1.5 py-0.5 rounded bg-[#4C566A] text-sm">Ctrl + Space</kbd> to open apps
+          </p>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <Button onClick={() => setIsPasswordPromptOpen(true)}>Add New Page</Button>
+          <Button variant="outline" onClick={() => setIsPasswordPromptOpen(true)}>
+            Upload Word Document
+          </Button>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="lock-mode"
+              checked={isUnlocked}
+              onCheckedChange={handleUnlockToggle}
+              disabled={isLoading}
+            />
+            <Label htmlFor="lock-mode">
+              {isUnlocked ? 'Unlocked' : 'Locked'}
+            </Label>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};

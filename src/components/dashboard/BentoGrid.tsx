@@ -65,7 +65,7 @@ export const BentoGrid = () => {
   
   return (
     <>
-      <div className="grid md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
         {items.map((item, i) => (
           <motion.button 
             key={i}
@@ -74,13 +74,10 @@ export const BentoGrid = () => {
               "group relative overflow-hidden rounded-xl border border-border",
               "bg-card/80 backdrop-blur-sm p-6",
               "transition-all duration-300",
+              "hover:scale-[1.02]",
               item.className,
               item.hoverColor
             )}
-            whileHover={{ 
-              scale: 1.02,
-              transition: { duration: 0.2 }
-            }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}

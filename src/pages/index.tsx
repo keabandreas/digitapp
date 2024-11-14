@@ -14,18 +14,24 @@ export default function Dashboard() {
   
       <div className="relative min-h-screen w-full overflow-hidden bg-background">
         <NordicBackground />
-        <div className="relative w-full p-6">
-          <header className="max-w-6xl mx-auto flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-[#D8DEE9]/80 mt-2">
-                Press <kbd className="px-1.5 py-0.5 rounded bg-[#4C566A] text-sm">Alt + 1-3</kbd> to open apps  or <kbd className="px-1.5 py-0.5 rounded bg-[#4C566A] text-sm">?</kbd> for shortcuts
-              </p>
-            </div>
-          </header>
+        
+        {/* Main content container with consistent padding and width */}
+        <div className="relative w-full min-h-screen px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl w-full"> {/* Constrain width for ultra-wide screens */}
+            <header className="py-8">
+              <div className="w-full">
+                <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+                <p className="text-muted-foreground mt-2">
+                  Press <kbd className="px-1.5 py-0.5 rounded bg-muted text-sm">Alt + 1-3</kbd> to open apps or{' '}
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted text-sm">?</kbd> for shortcuts
+                </p>
+              </div>
+            </header>
 
-          <div className="max-w-6xl mx-auto">
-            <BentoGrid />
+            {/* Grid container with consistent spacing */}
+            <div className="w-full pb-8">
+              <BentoGrid />
+            </div>
           </div>
         </div>
       </div>
@@ -36,10 +42,10 @@ export default function Dashboard() {
           height: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: hsl(var(--base-200));
+          background: hsl(var(--muted));
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: hsl(var(--base-300));
+          background: hsl(var(--muted-foreground));
           border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {

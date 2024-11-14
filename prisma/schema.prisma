@@ -12,7 +12,21 @@ model Document {
   title      String
   content    String
   restricted Boolean  @default(false)
-  category   String
+  category   String   @default("General")
+  isPinned   Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String
+  parentId Int?      // For nested categories
+  order    Int       @default(0)
+}
+
+model Tag {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  color  String
 }
