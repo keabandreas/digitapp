@@ -2,6 +2,9 @@
   "name": "digitapp",
   "private": true,
   "version": "0.0.0",
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
   "scripts": {
     "dev": "next dev -p 8080",
     "build": "next build",
@@ -10,7 +13,14 @@
     "node-server": "node server.js",
     "manage-password": "npx ts-node src/lib/managePassword.ts",
     "prisma:generate": "node -r ./load-env.js ./node_modules/.bin/prisma generate",
-    "prisma:migrate": "node -r ./load-env.js ./node_modules/.bin/prisma migrate dev"
+    "prisma:migrate": "node -r ./load-env.js ./node_modules/.bin/prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma migrate reset",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:create": "prisma migrate dev --create-only",
+    "db:migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -91,6 +101,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "postcss": "^8.4.21",
     "tailwindcss": "^3.3.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "overrides": {

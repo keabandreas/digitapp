@@ -10,6 +10,8 @@ services:
       - /app/.next
       - ./wiki.sqlite:/app/wiki.sqlite
       - ./prisma:/app/prisma
+      - ./public/uploads:/app/public/uploads
+      - ./tmp:/app/tmp
     environment:
       - NODE_ENV=development
       - DATABASE_URL=file:/app/prisma/dev.db

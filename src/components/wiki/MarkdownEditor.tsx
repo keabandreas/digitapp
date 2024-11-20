@@ -1,10 +1,15 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import debounce from 'lodash/debounce';
 import 'easymde/dist/easymde.min.css';
 
-const SimpleMDE = dynamic(() => import('react-simplemde-editor'), { ssr: false });
+const SimpleMDE = dynamic(() => import('react-simplemde-editor'), { 
+  ssr: false,
+  loading: () => <div className="p-4">Loading editor...</div>
+});
 
 interface MarkdownEditorProps {
   documentId: number;
@@ -25,28 +30,92 @@ export default function MarkdownEditor({
   const [content, setContent] = useState(initialContent);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Handle Ctrl+S shortcut
-  useEffect(() => {
-    const handleKeyDown = async (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        await handleSave();
+  // Memoize editor options for better performance
+  const options = useMemo(() => ({
+    spellChecker: false,
+    status: false,
+    minHeight: '400px',
+    maxHeight: '600px',
+    autofocus: true,
+    renderingConfig: {
+      singleLineBreaks: false,
+      codeSyntaxHighlighting: true,
+    },
+    previewImagesInEditor: false, // Disable image preview in editor
+    sideBySideFullscreen: false,
+    hideIcons: ['image', 'side-by-side', 'fullscreen'],
+    showIcons: ['bold', 'italic', 'heading', 'code', 'quote', 'unordered-list', 'ordered-list', 'link'],
+    toolbar: [
+      'bold', 'italic', 'heading', '|',
+      'quote', 'code', '|',
+      'unordered-list', 'ordered-list', '|',
+      'link',
+      {
+        name: 'custom-image',
+        action: function customFunction(editor) {
+          const cm = editor.codemirror;
+          const url = prompt('Enter image URL (recommended max size: 1MB):');
+          if (url) {
+            const text = `![](${url})`;
+            cm.replaceSelection(text);
+          }
+        },
+        className: 'fa fa-picture-o',
+        title: 'Add Image',
       }
-    };
+    ],
+  }), []);
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [title, content]);
+  // Debounced content update
+  const debouncedSetContent = useCallback(
+    debounce((value: string) => {
+      setContent(value);
+    }, 150),
+    []
+  );
 
+  // Handle content change
+  const handleContentChange = useCallback((value: string) => {
+    debouncedSetContent(value);
+  }, [debouncedSetContent]);
+
+  // Handle save
   const handleSave = async () => {
     if (isSaving) return;
     setIsSaving(true);
     try {
       await onSave(title, content);
+      toast.success('Document saved successfully');
+    } catch (error) {
+      console.error('Error saving document:', error);
+      toast.error('Failed to save document');
     } finally {
       setIsSaving(false);
     }
   };
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      debouncedSetContent.cancel();
+    };
+  }, [debouncedSetContent]);
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        await handleSave();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        onCancel();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleSave, onCancel]);
 
   return (
     <div className="flex flex-col h-full">
@@ -60,21 +129,11 @@ export default function MarkdownEditor({
         />
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 overflow-auto">
         <SimpleMDE
           value={content}
-          onChange={setContent}
-          options={{
-            spellChecker: false,
-            status: false,
-            minHeight: '400px',
-            autofocus: true,
-            autosave: {
-              enabled: true,
-              uniqueId: `document-${documentId}`,
-              delay: 1000,
-            },
-          }}
+          onChange={handleContentChange}
+          options={options}
         />
       </div>
 

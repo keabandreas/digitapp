@@ -7,6 +7,12 @@ const nextConfig = {
       allowedOrigins: ['localhost:8080', 'localhost:5000'],
     },
   },
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb' // Increase from default 1mb
+    },
+    responseLimit: false
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -21,6 +27,6 @@ const nextConfig = {
     config.externals.push('_http_common');
     return config;
   }
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

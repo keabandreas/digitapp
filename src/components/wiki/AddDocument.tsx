@@ -1,4 +1,4 @@
-// @/components/wiki/AddDocument.tsx
+// src/components/wiki/AddDocument.tsx
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,6 @@ interface AddDocumentProps {
     tagIds: number[],
     content?: string
   ) => Promise<void>;
-  initialCategory?: string;
   onClose?: () => void;
 }
 
@@ -27,34 +26,29 @@ export default function AddDocument({
   categories,
   tags,
   onCreateDocument,
-  initialCategory = "",
   onClose
 }: AddDocumentProps) {
+  console.log('AddDocument render with categories:', categories);
+  
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState(initialCategory);
+  const [category, setCategory] = useState("");
   const [restricted, setRestricted] = useState(false);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
-  useEffect(() => {
-    setCategory(initialCategory);
-  }, [initialCategory]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onCreateDocument(title, category, restricted, selectedTags);
-    setTitle("");
-    setCategory("");
-    setRestricted(false);
-    setSelectedTags([]);
-    if (onClose) onClose();
-  };
-
-  const toggleTag = (tagId: number) => {
-    setSelectedTags(prev => 
-      prev.includes(tagId)
-        ? prev.filter(id => id !== tagId)
-        : [...prev, tagId]
-    );
+    console.log('Submitting document with category:', category);
+    
+    try {
+      await onCreateDocument(title, category || "General", restricted, selectedTags);
+      setTitle("");
+      setCategory("");
+      setRestricted(false);
+      setSelectedTags([]);
+      if (onClose) onClose();
+    } catch (error) {
+      console.error('Error creating document:', error);
+    }
   };
 
   return (
@@ -71,14 +65,21 @@ export default function AddDocument({
 
       <div>
         <Label htmlFor="category">Category</Label>
-        <Select value={category} onValueChange={setCategory} required>
+        <Select 
+          value={category} 
+          onValueChange={(value) => {
+            console.log('Category selected:', value);
+            setCategory(value);
+          }}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="General">General</SelectItem>
             {categories.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id.toString()}>
-                {'  '.repeat(cat.level)}{cat.name}
+              <SelectItem key={cat.id} value={cat.name}>
+                {cat.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -98,15 +99,15 @@ export default function AddDocument({
                 borderColor: tag.color,
                 color: selectedTags.includes(tag.id) ? tag.color : 'inherit'
               }}
-              onClick={() => toggleTag(tag.id)}
+              onClick={() => {
+                setSelectedTags(prev => 
+                  prev.includes(tag.id)
+                    ? prev.filter(id => id !== tag.id)
+                    : [...prev, tag.id]
+                );
+              }}
             >
               {tag.name}
-              {selectedTags.includes(tag.id) && (
-                <X className="w-3 h-3 ml-1" onClick={(e) => {
-                  e.stopPropagation();
-                  toggleTag(tag.id);
-                }} />
-              )}
             </Badge>
           ))}
         </div>

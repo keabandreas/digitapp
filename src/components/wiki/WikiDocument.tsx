@@ -1,12 +1,13 @@
-import React from 'react';
-import { toast } from 'sonner';  // Add this import
-import MarkdownPreview from '@uiw/react-markdown-preview';
+import React, { Suspense, lazy } from 'react';
+import { toast } from 'sonner';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "@/components/ui/breadcrumb";
-import { Pin, PinOff, Lock, Pencil } from 'lucide-react';
+import { Lock, Pencil } from 'lucide-react';
 import { Document } from '@/lib/types/wiki';
-import '@uiw/react-markdown-preview/markdown.css';
+
+// Lazy load the markdown preview component
+const MarkdownPreview = lazy(() => import('@uiw/react-markdown-preview'));
 
 interface WikiDocumentProps {
   document: Document;
@@ -14,6 +15,15 @@ interface WikiDocumentProps {
   onDocumentUpdate: (id: number, updates: Partial<Document>) => Promise<void>;
   onEdit: () => void;
 }
+
+// Loading placeholder for markdown content
+const MarkdownLoading = () => (
+  <div className="animate-pulse">
+    <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+    <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+    <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+  </div>
+);
 
 export default function WikiDocument({ 
   document, 
@@ -29,24 +39,6 @@ export default function WikiDocument({
     );
   }
 
-  const togglePin = async () => {
-    try {
-      await onDocumentUpdate(document.id, {
-        isPinned: !document.isPinned
-      });
-      toast.success(document.isPinned ? 'Document unpinned' : 'Document pinned');
-    } catch (error) {
-      console.error('Error toggling pin:', error);
-      toast.error('Failed to update pin status');
-    }
-  };
-
-  // Function to preprocess the Markdown content
-  const preprocessMarkdown = (content: string) => {
-    // Replace single line breaks with <br>, but preserve double line breaks
-    return content.replace(/(?<!\n)\n(?!\n)/g, '  \n');
-  };
-
   const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleString(undefined, {
       year: 'numeric',
@@ -57,11 +49,11 @@ export default function WikiDocument({
     });
   };
 
-  const processedContent = preprocessMarkdown(document.content);
   const canEdit = isUnlocked || !document.restricted;
 
   return (
     <div className="w-full h-full bg-background text-foreground">
+      {/* Header section */}
       <div className="p-6 border-b">
         <Breadcrumb>
           <BreadcrumbItem>
@@ -85,28 +77,14 @@ export default function WikiDocument({
 
           <div className="flex items-center gap-2">
             {canEdit && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={togglePin}
-                  title={document.isPinned ? "Unpin document" : "Pin document"}
-                >
-                  {document.isPinned ? (
-                    <PinOff className="w-4 h-4" />
-                  ) : (
-                    <Pin className="w-4 h-4" />
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onEdit}
-                  title="Edit document"
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-              </>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onEdit}
+                title="Edit document"
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
             )}
           </div>
         </div>
@@ -134,14 +112,19 @@ export default function WikiDocument({
         </div>
       </div>
 
+      {/* Content section with lazy loading */}
       <div className="p-6 prose dark:prose-invert max-w-none">
-        <MarkdownPreview 
-          source={processedContent} 
-          style={{
-            backgroundColor: 'var(--background)',
-            color: 'var(--foreground)',
-          }}
-        />
+        <Suspense fallback={<MarkdownLoading />}>
+          <MarkdownPreview 
+            source={document.content} 
+            style={{
+              backgroundColor: 'var(--background)',
+              color: 'var(--foreground)',
+            }}
+            rehypePlugins={[]}
+            remarkPlugins={[]}
+          />
+        </Suspense>
       </div>
     </div>
   );
