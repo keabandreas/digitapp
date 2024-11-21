@@ -52,7 +52,7 @@ export default function WikiDocument({
   const canEdit = isUnlocked || !document.restricted;
 
   return (
-    <div className="w-full h-full bg-background text-foreground">
+    <div className="w-full h-full bg-base-200 text-foreground">
       {/* Header section */}
       <div className="p-6 border-b">
         <Breadcrumb>

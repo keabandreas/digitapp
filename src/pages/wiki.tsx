@@ -34,13 +34,13 @@ export default function WikiPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen w-full bg-base-300 text-foreground">
+    <div className="flex flex-col h-screen w-full bg-base-200 text-foreground">
       <WikiHeader
         isUnlocked={isUnlocked}
         onUnlockToggle={handleUnlockToggle}

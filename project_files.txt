@@ -624,7 +624,6 @@ export const useSearch = (documents: Document[]) => {
 export type SearchResult = Fuse.FuseResult<Document>;
 === FILE: ./src/lib/context/WikiContext.tsx ===
 
-// src/lib/context/WikiContext.tsx
 import React, { 
   createContext, 
   useContext, 
@@ -638,37 +637,49 @@ import {
   Document, 
   Category, 
   CategoryWithHierarchy, 
-  Tag
+  Tag,
+  DocumentUpdate,
+  WikiState,
+  DocumentFilter,
+  SortOption
 } from '@/lib/types/wiki';
 
-interface WikiContextType {
-  // State
-  documents: Document[];
-  selectedDocument: Document | null;
-  categories: CategoryWithHierarchy[];
-  tags: Tag[];
-  isEditing: boolean;
-  isUnlocked: boolean;
-  isLoading: boolean;
-  error: string | null;
-  isPasswordPromptOpen: boolean;
-  isAddDocumentOpen: boolean;
-  isUploadDialogOpen: boolean;
-
-  // Actions
+interface WikiContextType extends WikiState {
+  // Document actions
   selectDocument: (id: number | null) => void;
   createDocument: (title: string, category: string, restricted: boolean, content?: string) => Promise<void>;
-  updateDocument: (id: number, updates: Partial<Document>) => Promise<void>;
+  updateDocument: (id: number, updates: DocumentUpdate) => Promise<void>;
   deleteDocument: (id: number) => Promise<void>;
+  
+  // Category actions
+  createCategory: (name: string, parentId?: number) => Promise<void>;
+  updateCategory: (id: number, name: string) => Promise<void>;
+  deleteCategory: (id: number) => Promise<void>;
+  reorderCategory: (id: number, newOrder: number) => Promise<void>;
+  
+  // Tag actions
+  createTag: (name: string, color: string) => Promise<void>;
+  deleteTag: (id: number) => Promise<void>;
+  updateDocumentTags: (documentId: number, tagIds: number[]) => Promise<void>;
   
   // UI State actions
   setIsEditing: (value: boolean) => void;
   setIsUnlocked: (value: boolean) => void;
+  
+  // Search and filter
+  filterDocuments: (filter: DocumentFilter) => void;
+  sortDocuments: (sort: SortOption) => void;
+  
+  // Auth
+  isPasswordPromptOpen: boolean;
   setIsPasswordPromptOpen: (value: boolean) => void;
+  handlePasswordSubmit: (password: string) => Promise<void>;
+
+  // Additional UI state
+  isAddDocumentOpen: boolean;
+  isUploadDialogOpen: boolean;
   setIsAddDocumentOpen: (value: boolean) => void;
   setIsUploadDialogOpen: (value: boolean) => void;
-  handleUnlockToggle: (checked: boolean) => void;
-  handlePasswordSubmit: (password: string) => Promise<void>;
 }
 
 const WikiContext = createContext<WikiContextType | null>(null);
@@ -711,62 +722,56 @@ export function WikiProvider({ children }: { children: React.ReactNode }) {
   const [isPasswordPromptOpen, setIsPasswordPromptOpen] = useState(false);
   const [isAddDocumentOpen, setIsAddDocumentOpen] = useState(false);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [filter, setFilter] = useState<DocumentFilter>({});
+  const [sort, setSort] = useState<SortOption>({ field: 'updatedAt', direction: 'desc' });
 
-  // Fetch all data at once
-  const fetchAllData = useCallback(async () => {
-    console.log('Fetching all data...');
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const [docsResponse, catsResponse, tagsResponse] = await Promise.all([
-        fetch('/api/wiki/wiki'),
-        fetch('/api/wiki/categories'),
-        fetch('/api/wiki/tags')
-      ]);
-
-      if (!docsResponse.ok || !catsResponse.ok || !tagsResponse.ok) {
-        throw new Error('Failed to fetch data');
-      }
-
-      const [docsData, catsData, tagsData] = await Promise.all([
-        docsResponse.json(),
-        catsResponse.json(),
-        tagsResponse.json()
-      ]);
-
-      console.log('Data fetched successfully:', {
-        documentsCount: docsData.length,
-        categoriesCount: catsData.length,
-        tagsCount: tagsData.length
-      });
-
-      setDocuments(docsData);
-      setCategories(catsData);
-      setTags(tagsData);
-    } catch (err) {
-      console.error('Error fetching data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch data');
-      toast.error('Failed to load data');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Initial data fetch
-  useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
-
-  // Memoize category hierarchy
+  // Compute category hierarchy
   const categoryHierarchy = useMemo(() => 
     buildCategoryHierarchy(categories, documents),
     [categories, documents]
   );
 
+  // Fetch initial data
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const [docsRes, catsRes, tagsRes] = await Promise.all([
+        fetch('/api/wiki/wiki'),
+        fetch('/api/wiki/categories'),
+        fetch('/api/wiki/tags')
+      ]);
+
+      if (!docsRes.ok || !catsRes.ok || !tagsRes.ok) {
+        throw new Error('Failed to fetch data');
+      }
+
+      const [docsData, catsData, tagsData] = await Promise.all([
+        docsRes.json(),
+        catsRes.json(),
+        tagsRes.json()
+      ]);
+
+      setDocuments(docsData);
+      setCategories(catsData);
+      setTags(tagsData);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
+      console.error('Error fetching data:', err);
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
   // Document actions
   const selectDocument = useCallback((id: number | null) => {
-    console.log('Selecting document:', id);
     const doc = id ? documents.find(d => d.id === id) || null : null;
     setSelectedDocument(doc);
     setIsEditing(false);
@@ -778,7 +783,6 @@ export function WikiProvider({ children }: { children: React.ReactNode }) {
     restricted: boolean,
     content: string = ''
   ) => {
-    console.log('Creating document:', { title, category, restricted });
     try {
       const response = await fetch('/api/wiki/wiki', {
         method: 'POST',
@@ -786,73 +790,214 @@ export function WikiProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ title, category, restricted, content }),
       });
 
-      if (!response.ok) throw new Error('Failed to create document');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create document');
+      }
 
-      await fetchAllData();
+      await fetchData();
       toast.success('Document created successfully');
     } catch (error) {
       console.error('Error creating document:', error);
-      toast.error('Failed to create document');
+      toast.error(error instanceof Error ? error.message : 'Failed to create document');
       throw error;
     }
-  }, [fetchAllData]);
+  }, [fetchData]);
 
   const updateDocument = useCallback(async (
     id: number,
-    updates: Partial<Document>
+    updates: DocumentUpdate
   ) => {
-    console.log('Updating document:', { id, updates });
     try {
-      const response = await fetch(`/api/wiki/wiki?id=${id}`, {
+      const response = await fetch(`/api/wiki/wiki?id=${id}`, { // Add id to URL
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to update document');
       }
-
-      await fetchAllData();
+  
+      const updatedDoc = await response.json();
+      
+      // Update local state
+      setDocuments(prevDocs => 
+        prevDocs.map(doc => 
+          doc.id === id ? { ...doc, ...updatedDoc } : doc
+        )
+      );
+  
+      if (selectedDocument?.id === id) {
+        setSelectedDocument(prev => 
+          prev ? { ...prev, ...updatedDoc } : null
+        );
+      }
+  
       toast.success('Document updated successfully');
     } catch (error) {
       console.error('Error updating document:', error);
-      toast.error('Failed to update document');
+      toast.error(error instanceof Error ? error.message : 'Failed to update document');
       throw error;
     }
-  }, [fetchAllData]);
+  }, [selectedDocument?.id]);
 
   const deleteDocument = useCallback(async (id: number) => {
-    console.log('Deleting document:', id);
     try {
       const response = await fetch(`/api/wiki/wiki?id=${id}`, {
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to delete document');
+      if (!response.ok) {
+        throw new Error('Failed to delete document');
+      }
 
-      await fetchAllData();
+      await fetchData();
       if (selectedDocument?.id === id) {
         setSelectedDocument(null);
       }
       toast.success('Document deleted successfully');
     } catch (error) {
       console.error('Error deleting document:', error);
-      toast.error('Failed to delete document');
+      toast.error(error instanceof Error ? error.message : 'Failed to delete document');
       throw error;
     }
-  }, [fetchAllData, selectedDocument?.id]);
+  }, [fetchData, selectedDocument?.id]);
 
-  // Auth handlers
-  const handleUnlockToggle = useCallback((checked: boolean) => {
-    if (checked && !isUnlocked) {
-      setIsPasswordPromptOpen(true);
-    } else if (!checked && isUnlocked) {
-      setIsUnlocked(false);
+  // Category actions
+  const createCategory = useCallback(async (name: string, parentId?: number) => {
+    try {
+      const response = await fetch('/api/wiki/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, parentId }),
+      });
+
+      if (!response.ok) throw new Error('Failed to create category');
+      await fetchData();
+      toast.success('Category created successfully');
+    } catch (error) {
+      console.error('Error creating category:', error);
+      toast.error('Failed to create category');
+      throw error;
     }
-  }, [isUnlocked]);
+  }, [fetchData]);
 
+  const updateCategory = useCallback(async (id: number, name: string) => {
+    try {
+      const response = await fetch('/api/wiki/categories', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, name }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update category');
+      await fetchData();
+      toast.success('Category updated successfully');
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast.error('Failed to update category');
+      throw error;
+    }
+  }, [fetchData]);
+
+  const deleteCategory = useCallback(async (id: number) => {
+    try {
+      const response = await fetch(`/api/wiki/categories?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete category');
+      await fetchData();
+      toast.success('Category deleted successfully');
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast.error('Failed to delete category');
+      throw error;
+    }
+  }, [fetchData]);
+
+  const reorderCategory = useCallback(async (id: number, newOrder: number) => {
+    try {
+      const response = await fetch('/api/wiki/categories', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, order: newOrder }),
+      });
+
+      if (!response.ok) throw new Error('Failed to reorder category');
+      await fetchData();
+    } catch (error) {
+      console.error('Error reordering category:', error);
+      toast.error('Failed to reorder category');
+      throw error;
+    }
+  }, [fetchData]);
+
+  // Tag actions
+  const createTag = useCallback(async (name: string, color: string) => {
+    try {
+      const response = await fetch('/api/wiki/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, color }),
+      });
+
+      if (!response.ok) throw new Error('Failed to create tag');
+      await fetchData();
+      toast.success('Tag created successfully');
+    } catch (error) {
+      console.error('Error creating tag:', error);
+      toast.error('Failed to create tag');
+      throw error;
+    }
+  }, [fetchData]);
+
+  const deleteTag = useCallback(async (id: number) => {
+    try {
+      const response = await fetch(`/api/wiki/tags?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete tag');
+      await fetchData();
+      toast.success('Tag deleted successfully');
+    } catch (error) {
+      console.error('Error deleting tag:', error);
+      toast.error('Failed to delete tag');
+      throw error;
+    }
+  }, [fetchData]);
+
+  const updateDocumentTags = useCallback(async (documentId: number, tagIds: number[]) => {
+    try {
+      const response = await fetch('/api/wiki/tags', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId, tagIds }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update document tags');
+      await fetchData();
+      toast.success('Tags updated successfully');
+    } catch (error) {
+      console.error('Error updating document tags:', error);
+      toast.error('Failed to update document tags');
+      throw error;
+    }
+  }, [fetchData]);
+
+  // Search and filter
+  const filterDocuments = useCallback((newFilter: DocumentFilter) => {
+    setFilter(newFilter);
+  }, []);
+
+  const sortDocuments = useCallback((newSort: SortOption) => {
+    setSort(newSort);
+  }, []);
+
+  // Auth
   const handlePasswordSubmit = useCallback(async (password: string) => {
     try {
       const response = await fetch('/api/wiki/verify-password', {
@@ -860,20 +1005,21 @@ export function WikiProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
       });
-
-      if (!response.ok) throw new Error('Invalid password');
-
+  
+      if (!response.ok) {
+        throw new Error('Invalid password');
+      }
+  
       setIsUnlocked(true);
       setIsPasswordPromptOpen(false);
       toast.success('Successfully unlocked');
     } catch (error) {
-      console.error('Error during authentication:', error);
-      toast.error('Authentication failed');
-      setIsUnlocked(false);
+      // Don't close the modal on error
+      throw error; // Let the PasswordPromptModal handle the error display
     }
   }, []);
 
-  const contextValue = {
+  const value = {
     // State
     documents,
     selectedDocument,
@@ -892,6 +1038,13 @@ export function WikiProvider({ children }: { children: React.ReactNode }) {
     createDocument,
     updateDocument,
     deleteDocument,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    reorderCategory,
+    createTag,
+    deleteTag,
+    updateDocumentTags,
 
     // UI State actions
     setIsEditing,
@@ -899,15 +1052,116 @@ export function WikiProvider({ children }: { children: React.ReactNode }) {
     setIsPasswordPromptOpen,
     setIsAddDocumentOpen,
     setIsUploadDialogOpen,
-    handleUnlockToggle,
+    filterDocuments,
+    sortDocuments,
     handlePasswordSubmit,
   };
 
   return (
-    <WikiContext.Provider value={contextValue}>
+    <WikiContext.Provider value={value}>
       {children}
     </WikiContext.Provider>
   );
+}
+=== FILE: ./src/lib/context/ModalContext.tsx ===
+
+import React, { createContext, useContext, useReducer, useCallback } from 'react';
+
+type ModalType = string;
+
+interface ModalState {
+  stack: ModalType[];
+}
+
+type ModalAction = 
+  | { type: 'PUSH_MODAL'; payload: ModalType }
+  | { type: 'POP_MODAL' }
+  | { type: 'CLOSE_ALL' };
+
+interface ModalContextType {
+  modalStack: ModalType[];
+  pushModal: (modal: ModalType) => void;
+  popModal: () => void;
+  closeAllModals: () => void;
+  isTopModal: (modal: ModalType) => boolean;
+}
+
+const ModalContext = createContext<ModalContextType | null>(null);
+
+function modalReducer(state: ModalState, action: ModalAction): ModalState {
+  switch (action.type) {
+    case 'PUSH_MODAL':
+      return {
+        ...state,
+        stack: [...state.stack, action.payload]
+      };
+    case 'POP_MODAL':
+      return {
+        ...state,
+        stack: state.stack.slice(0, -1)
+      };
+    case 'CLOSE_ALL':
+      return {
+        ...state,
+        stack: []
+      };
+    default:
+      return state;
+  }
+}
+
+export function ModalProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(modalReducer, { stack: [] });
+
+  const pushModal = useCallback((modal: ModalType) => {
+    dispatch({ type: 'PUSH_MODAL', payload: modal });
+  }, []);
+
+  const popModal = useCallback(() => {
+    dispatch({ type: 'POP_MODAL' });
+  }, []);
+
+  const closeAllModals = useCallback(() => {
+    dispatch({ type: 'CLOSE_ALL' });
+  }, []);
+
+  const isTopModal = useCallback((modal: ModalType) => {
+    return state.stack[state.stack.length - 1] === modal;
+  }, [state.stack]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && state.stack.length > 0) {
+        e.preventDefault();
+        popModal();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [popModal]);
+
+  const value = {
+    modalStack: state.stack,
+    pushModal,
+    popModal,
+    closeAllModals,
+    isTopModal
+  };
+
+  return (
+    <ModalContext.Provider value={value}>
+      {children}
+    </ModalContext.Provider>
+  );
+}
+
+export function useModal() {
+  const context = useContext(ModalContext);
+  if (!context) {
+    throw new Error('useModal must be used within a ModalProvider');
+  }
+  return context;
 }
 === FILE: ./src/lib/prisma.ts ===
 
@@ -928,14 +1182,12 @@ export default prisma
 
 === FILE: ./src/lib/types/wiki.ts ===
 
-// src/lib/types/wiki.ts
 export interface Document {
   id: number;
   title: string;
   content: string;
   restricted: boolean;
   category: string;
-  isPinned?: boolean;
   createdAt: Date;
   updatedAt: Date;
   tags?: Array<{
@@ -969,7 +1221,6 @@ export interface DocumentUpdate {
   content?: string;
   category?: string;
   restricted?: boolean;
-  isPinned?: boolean;
 }
 
 export interface SearchResult {
@@ -1002,28 +1253,6 @@ export interface CategoriesResponse extends ApiResponse<Category[]> {}
 export interface TagResponse extends ApiResponse<Tag> {}
 export interface TagsResponse extends ApiResponse<Tag[]> {}
 
-// Action Types for any reducers you might add later
-export type DocumentAction = 
-  | { type: 'SET_DOCUMENTS'; payload: Document[] }
-  | { type: 'ADD_DOCUMENT'; payload: Document }
-  | { type: 'UPDATE_DOCUMENT'; payload: Document }
-  | { type: 'DELETE_DOCUMENT'; payload: number }
-  | { type: 'SET_SELECTED_DOCUMENT'; payload: Document | null }
-  | { type: 'SET_IS_EDITING'; payload: boolean };
-
-export type CategoryAction =
-  | { type: 'SET_CATEGORIES'; payload: Category[] }
-  | { type: 'ADD_CATEGORY'; payload: Category }
-  | { type: 'UPDATE_CATEGORY'; payload: Category }
-  | { type: 'DELETE_CATEGORY'; payload: number }
-  | { type: 'REORDER_CATEGORY'; payload: { id: number; order: number } };
-
-export type TagAction =
-  | { type: 'SET_TAGS'; payload: Tag[] }
-  | { type: 'ADD_TAG'; payload: Tag }
-  | { type: 'UPDATE_TAG'; payload: Tag }
-  | { type: 'DELETE_TAG'; payload: number };
-
 // State Types for context
 export interface WikiState {
   documents: Document[];
@@ -1042,7 +1271,6 @@ export interface DocumentFilter {
   tag?: string;
   searchQuery?: string;
   restricted?: boolean;
-  isPinned?: boolean;
 }
 
 export interface SortOption {
@@ -1053,7 +1281,6 @@ export interface SortOption {
 export interface DocumentStats {
   totalCount: number;
   restrictedCount: number;
-  pinnedCount: number;
   categoryCounts: Record<string, number>;
   tagCounts: Record<string, number>;
   lastUpdated: Date;
@@ -2754,31 +2981,32 @@ import { useWiki } from '@/lib/context/WikiContext';
 export function WikiHeader() {
   const { 
     isUnlocked,
-    handleUnlockToggle,
-    isPasswordPromptOpen,
+    setIsUnlocked,
     setIsPasswordPromptOpen,
     setIsAddDocumentOpen,
     setIsUploadDialogOpen
   } = useWiki();
 
+  const handleUnlockToggle = (checked: boolean) => {
+    if (checked && !isUnlocked) {
+      setIsPasswordPromptOpen(true);
+    } else if (!checked && isUnlocked) {
+      setIsUnlocked(false);
+    }
+  };
+
   const handleAddDocument = () => {
-    console.log('Add Document clicked, unlocked status:', isUnlocked);
     if (!isUnlocked) {
-      console.log('Document locked, showing password prompt');
       setIsPasswordPromptOpen(true);
     } else {
-      console.log('Document unlocked, opening add dialog');
       setIsAddDocumentOpen(true);
     }
   };
 
   const handleUploadDocument = () => {
-    console.log('Upload Document clicked, unlocked status:', isUnlocked);
     if (!isUnlocked) {
-      console.log('Document locked, showing password prompt');
       setIsPasswordPromptOpen(true);
     } else {
-      console.log('Document unlocked, opening upload dialog');
       setIsUploadDialogOpen(true);
     }
   };
@@ -2794,7 +3022,9 @@ export function WikiHeader() {
         </div>
         
         <div className="flex items-center space-x-4">
-          <Button onClick={handleAddDocument}>Add New Page</Button>
+          <Button onClick={handleAddDocument}>
+            Add New Page
+          </Button>
           <Button variant="outline" onClick={handleUploadDocument}>
             Upload Word Document
           </Button>
@@ -3047,84 +3277,73 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
 export default CategoryManager;
 === FILE: ./src/components/wiki/WikiDialogs.tsx ===
 
-// src/components/wiki/WikiDialogs.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useWiki } from '@/lib/context/WikiContext';
 import { PasswordPromptModal } from '@/components/wiki/PasswordPromptModal';
 import AddDocument from '@/components/wiki/AddDocument';
 import { FileUpload } from '@/components/wiki/FileUpload';
+import WikiSearchModal from '@/components/wiki/WikiSearchModal';
+import { Document } from '@/lib/types/wiki';
 
-export function WikiDialogs() {
-  const {
-    isPasswordPromptOpen,
-    isAddDocumentOpen,
-    isUploadDialogOpen,
-    setIsPasswordPromptOpen,
-    setIsAddDocumentOpen,
-    setIsUploadDialogOpen,
-    handlePasswordSubmit,
-    createDocument,
-    categories,
-    tags
-  } = useWiki();
+interface WikiDialogsProps {
+  isPasswordPromptOpen: boolean;
+  isAddDocumentOpen: boolean;
+  isUploadDialogOpen: boolean;
+  isSearchOpen: boolean;
+  searchResults: any[];
+  categories: string[];
+  documents: Document[];
+  onPasswordSubmit: (password: string) => Promise<void>;
+  onCreateDocument: (title: string, category: string, restricted: boolean, content?: string) => Promise<void>;
+  onDocumentSelect: (id: number) => void;
+  onSearch: (query: string) => void;
+  setIsPasswordPromptOpen: (value: boolean) => void;
+  setIsAddDocumentOpen: (value: boolean) => void;
+  setIsUploadDialogOpen: (value: boolean) => void;
+  setIsSearchOpen: (value: boolean) => void;
+  setSearchResults: (results: any[]) => void;
+  setSelectedDocument: (doc: Document | null) => void;
+  setExpandedCategories: (categories: { [key: string]: boolean }) => void;
+}
 
-  console.log('WikiDialogs render state:', {
-    isPasswordPromptOpen,
-    isAddDocumentOpen,
-    isUploadDialogOpen
-  });
-
-  const handleFileProcessed = async (data: {
-    title: string;
-    content: string;
-    category: string;
-    restricted: boolean;
-  }) => {
-    console.log('Processing uploaded file:', {
-      title: data.title,
-      category: data.category,
-      restricted: data.restricted,
-      contentLength: data.content?.length
-    });
-
-    try {
-      await createDocument(
-        data.title,
-        data.category,
-        data.restricted,
-        data.content  // Pass the content explicitly
-      );
-      setIsUploadDialogOpen(false);
-    } catch (error) {
-      console.error('Error processing uploaded file:', error);
-    }
-  };
-
+export function WikiDialogs({
+  isPasswordPromptOpen,
+  isAddDocumentOpen,
+  isUploadDialogOpen,
+  isSearchOpen,
+  searchResults,
+  categories,
+  documents,
+  onPasswordSubmit,
+  onCreateDocument,
+  onDocumentSelect,
+  onSearch,
+  setIsPasswordPromptOpen,
+  setIsAddDocumentOpen,
+  setIsUploadDialogOpen,
+  setIsSearchOpen,
+  setSearchResults,
+  setSelectedDocument,
+  setExpandedCategories
+}: WikiDialogsProps) {
   return (
     <>
       <PasswordPromptModal
         isOpen={isPasswordPromptOpen}
         onClose={() => setIsPasswordPromptOpen(false)}
-        onSubmit={handlePasswordSubmit}
+        onSubmit={onPasswordSubmit}
       />
 
-      <Dialog 
-        open={isAddDocumentOpen} 
-        onOpenChange={(open) => {
-          console.log('Add document dialog change:', open);
-          setIsAddDocumentOpen(open);
-        }}
-      >
+      <Dialog open={isAddDocumentOpen} onOpenChange={setIsAddDocumentOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Page</DialogTitle>
           </DialogHeader>
           <AddDocument
             categories={categories}
-            tags={tags}
-            onCreateDocument={async (title, category, restricted, tagIds) => {
-              await createDocument(title, category, restricted, '', tagIds);
+            onCreateDocument={async (title, category, restricted, content) => {
+              await onCreateDocument(title, category, restricted, content);
               setIsAddDocumentOpen(false);
             }}
             onClose={() => setIsAddDocumentOpen(false)}
@@ -3132,20 +3351,44 @@ export function WikiDialogs() {
         </DialogContent>
       </Dialog>
 
-      <Dialog 
-        open={isUploadDialogOpen} 
-        onOpenChange={(open) => {
-          console.log('Upload dialog change:', open);
-          setIsUploadDialogOpen(open);
-        }}
-      >
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Upload Word Document</DialogTitle>
           </DialogHeader>
-          <FileUpload onFileProcessed={handleFileProcessed} />
+          <FileUpload
+            onFileProcessed={async (data) => {
+              await onCreateDocument(
+                data.title,
+                data.category,
+                data.restricted,
+                data.content
+              );
+              setIsUploadDialogOpen(false);
+            }}
+          />
         </DialogContent>
       </Dialog>
+
+      <WikiSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => {
+          setIsSearchOpen(false);
+          setSearchResults([]);
+        }}
+        searchResults={searchResults}
+        onResultSelect={onDocumentSelect}
+        expandToDocument={(id) => {
+          const document = documents.find(doc => doc.id === id);
+          if (document) {
+            setExpandedCategories(prev => ({
+              ...prev,
+              [document.category]: true
+            }));
+          }
+        }}
+        onSearch={onSearch}
+      />
     </>
   );
 }
@@ -3613,18 +3856,16 @@ export function WikiContent() {
 }
 === FILE: ./src/components/wiki/WikiDocument.tsx ===
 
-// src/components/wiki/WikiDocument.tsx
-import React, { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import MarkdownPreview from '@uiw/react-markdown-preview';
+import React, { Suspense, lazy } from 'react';
+import { toast } from 'sonner';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "@/components/ui/breadcrumb";
-import { Pin, PinOff, Lock, Pencil } from 'lucide-react';
+import { Lock, Pencil } from 'lucide-react';
 import { Document } from '@/lib/types/wiki';
-import { useWiki } from '@/lib/context/WikiContext';
-import '@uiw/react-markdown-preview/markdown.css';
+
+// Lazy load the markdown preview component
+const MarkdownPreview = lazy(() => import('@uiw/react-markdown-preview'));
 
 interface WikiDocumentProps {
   document: Document;
@@ -3633,15 +3874,21 @@ interface WikiDocumentProps {
   onEdit: () => void;
 }
 
+// Loading placeholder for markdown content
+const MarkdownLoading = () => (
+  <div className="animate-pulse">
+    <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+    <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+    <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+  </div>
+);
+
 export default function WikiDocument({ 
   document, 
   isUnlocked, 
   onDocumentUpdate,
   onEdit
 }: WikiDocumentProps) {
-  const { categories } = useWiki();
-  const [isChangingCategory, setIsChangingCategory] = useState(false);
-
   if (!document) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -3649,29 +3896,6 @@ export default function WikiDocument({
       </div>
     );
   }
-
-  const togglePin = async () => {
-    try {
-      await onDocumentUpdate(document.id, {
-        isPinned: !document.isPinned
-      });
-      toast.success(document.isPinned ? 'Document unpinned' : 'Document pinned');
-    } catch (error) {
-      console.error('Error toggling pin:', error);
-      toast.error('Failed to update pin status');
-    }
-  };
-
-  const handleCategoryChange = async (newCategory: string) => {
-    try {
-      await onDocumentUpdate(document.id, { category: newCategory });
-      toast.success('Category updated successfully');
-      setIsChangingCategory(false);
-    } catch (error) {
-      console.error('Error updating category:', error);
-      toast.error('Failed to update category');
-    }
-  };
 
   const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleString(undefined, {
@@ -3683,8 +3907,11 @@ export default function WikiDocument({
     });
   };
 
+  const canEdit = isUnlocked || !document.restricted;
+
   return (
     <div className="w-full h-full bg-background text-foreground">
+      {/* Header section */}
       <div className="p-6 border-b">
         <Breadcrumb>
           <BreadcrumbItem>
@@ -3707,48 +3934,34 @@ export default function WikiDocument({
           </div>
 
           <div className="flex items-center gap-2">
-            {isUnlocked && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={togglePin}
-                >
-                  {document.isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsChangingCategory(!isChangingCategory)}
-                >
-                  Change Category
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onEdit}
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-              </>
+            {canEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onEdit}
+                title="Edit document"
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
             )}
           </div>
         </div>
 
-        {isChangingCategory && (
-          <div className="mt-4 max-w-xs">
-            <Select value={document.category} onValueChange={handleCategoryChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.name}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {document.tags && document.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            {document.tags.map(tag => (
+              <Badge
+                key={tag.id}
+                variant="outline"
+                style={{
+                  borderColor: tag.color,
+                  color: tag.color,
+                  backgroundColor: `${tag.color}10`
+                }}
+              >
+                {tag.name}
+              </Badge>
+            ))}
           </div>
         )}
 
@@ -3757,14 +3970,19 @@ export default function WikiDocument({
         </div>
       </div>
 
+      {/* Content section with lazy loading */}
       <div className="p-6 prose dark:prose-invert max-w-none">
-        <MarkdownPreview 
-          source={document.content} 
-          style={{
-            backgroundColor: 'var(--background)',
-            color: 'var(--foreground)',
-          }}
-        />
+        <Suspense fallback={<MarkdownLoading />}>
+          <MarkdownPreview 
+            source={document.content} 
+            style={{
+              backgroundColor: 'var(--background)',
+              color: 'var(--foreground)',
+            }}
+            rehypePlugins={[]}
+            remarkPlugins={[]}
+          />
+        </Suspense>
       </div>
     </div>
   );
@@ -4150,25 +4368,24 @@ export default function WikiSearchModal({
 }
 === FILE: ./src/components/wiki/MarkdownEditor.tsx ===
 
-// src/components/wiki/MarkdownEditor.tsx
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { toast } from "react-hot-toast";
-import { useWiki } from '@/lib/context/WikiContext';
+import { toast } from "sonner";
+import debounce from 'lodash/debounce';
 import 'easymde/dist/easymde.min.css';
 
-const SimpleMDE = dynamic(() => import('react-simplemde-editor'), { ssr: false });
+const SimpleMDE = dynamic(() => import('react-simplemde-editor'), { 
+  ssr: false,
+  loading: () => <div className="p-4">Loading editor...</div>
+});
 
 interface MarkdownEditorProps {
   documentId: number;
   initialTitle: string;
   initialContent: string;
-  initialCategory: string;
-  onSave: (title: string, content: string, category: string) => Promise<void>;
+  onSave: (title: string, content: string) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -4176,34 +4393,68 @@ export default function MarkdownEditor({
   documentId,
   initialTitle,
   initialContent,
-  initialCategory,
   onSave,
   onCancel
 }: MarkdownEditorProps) {
-  const { categories } = useWiki();
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
-  const [category, setCategory] = useState(initialCategory);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Handle Ctrl+S shortcut
-  useEffect(() => {
-    const handleKeyDown = async (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        await handleSave();
+  // Memoize editor options for better performance
+  const options = useMemo(() => ({
+    spellChecker: false,
+    status: false,
+    minHeight: '400px',
+    maxHeight: '600px',
+    autofocus: true,
+    renderingConfig: {
+      singleLineBreaks: false,
+      codeSyntaxHighlighting: true,
+    },
+    previewImagesInEditor: false, // Disable image preview in editor
+    sideBySideFullscreen: false,
+    hideIcons: ['image', 'side-by-side', 'fullscreen'],
+    showIcons: ['bold', 'italic', 'heading', 'code', 'quote', 'unordered-list', 'ordered-list', 'link'],
+    toolbar: [
+      'bold', 'italic', 'heading', '|',
+      'quote', 'code', '|',
+      'unordered-list', 'ordered-list', '|',
+      'link',
+      {
+        name: 'custom-image',
+        action: function customFunction(editor) {
+          const cm = editor.codemirror;
+          const url = prompt('Enter image URL (recommended max size: 1MB):');
+          if (url) {
+            const text = `![](${url})`;
+            cm.replaceSelection(text);
+          }
+        },
+        className: 'fa fa-picture-o',
+        title: 'Add Image',
       }
-    };
+    ],
+  }), []);
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [title, content, category]);
+  // Debounced content update
+  const debouncedSetContent = useCallback(
+    debounce((value: string) => {
+      setContent(value);
+    }, 150),
+    []
+  );
 
+  // Handle content change
+  const handleContentChange = useCallback((value: string) => {
+    debouncedSetContent(value);
+  }, [debouncedSetContent]);
+
+  // Handle save
   const handleSave = async () => {
     if (isSaving) return;
     setIsSaving(true);
     try {
-      await onSave(title, content, category);
+      await onSave(title, content);
       toast.success('Document saved successfully');
     } catch (error) {
       console.error('Error saving document:', error);
@@ -4213,53 +4464,46 @@ export default function MarkdownEditor({
     }
   };
 
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      debouncedSetContent.cancel();
+    };
+  }, [debouncedSetContent]);
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        await handleSave();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        onCancel();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleSave, onCancel]);
+
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b space-y-4">
-        <div>
-          <Label htmlFor="title">Title</Label>
-          <Input
-            id="title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Document Title"
-            className="text-xl font-bold"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="category">Category</Label>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.name}>
-                  {'  '.repeat(cat.level)}{cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="p-4 border-b">
+        <Input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Document Title"
+          className="text-xl font-bold"
+        />
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 overflow-auto">
         <SimpleMDE
           value={content}
-          onChange={setContent}
-          options={{
-            spellChecker: false,
-            status: false,
-            minHeight: '400px',
-            autofocus: true,
-            autosave: {
-              enabled: true,
-              uniqueId: `document-${documentId}`,
-              delay: 1000,
-            },
-          }}
+          onChange={handleContentChange}
+          options={options}
         />
       </div>
 
@@ -4268,7 +4512,7 @@ export default function MarkdownEditor({
           Press Ctrl + S to save
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={onCancel} disabled={isSaving}>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
           <Button 
@@ -4445,28 +4689,58 @@ export const KeyboardShortcutsHelp = ({ shortcuts }: { shortcuts: KeyboardShortc
   };
 === FILE: ./src/components/wiki/PasswordPromptModal.tsx ===
 
-import React, { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { AlertCircle } from 'lucide-react';
 
 interface PasswordPromptModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (password: string) => void
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (password: string) => Promise<void>;
 }
 
 export function PasswordPromptModal({ isOpen, onClose, onSubmit }: PasswordPromptModalProps) {
-  const [password, setPassword] = useState('')
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(password)
-    setPassword('')
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password.trim()) {
+      setError('Please enter a password');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      await onSubmit(password);
+      setPassword(''); // Clear on success
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Invalid password');
+      setPassword(''); // Clear on error
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    setPassword('');
+    setError(null);
+    onClose();
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    if (error) setError(null);
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Enter Password</DialogTitle>
@@ -4474,26 +4748,37 @@ export function PasswordPromptModal({ isOpen, onClose, onSubmit }: PasswordPromp
             Please enter the password to unlock the wiki.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <Input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter password"
-            className="mb-4"
-          />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              type="password"
+              value={password}
+              onChange={handleInputChange}
+              placeholder="Enter password"
+              disabled={isSubmitting}
+              autoFocus
+              aria-invalid={!!error}
+            />
+            {error && (
+              <div className="flex items-center gap-2 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4" />
+                <span>{error}</span>
+              </div>
+            )}
+          </div>
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
-            <Button type="submit">Submit</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Verifying...' : 'Submit'}
+            </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-
 === FILE: ./src/components/ui/button.tsx ===
 
 // src/components/ui/button.tsx
@@ -8178,16 +8463,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 === FILE: ./src/pages/api/wiki/wiki.ts ===
 
-// src/pages/api/wiki/wiki.ts
 import { NextApiRequest, NextApiResponse } from 'next';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
 
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '100mb'
+      sizeLimit: '50mb'
     },
     responseLimit: false
   }
@@ -8199,48 +8481,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     switch (req.method) {
       case 'GET':
-        console.log('GET request received:', { id });
-        
         if (id) {
           const document = await prisma.document.findUnique({
-            where: { id: parseInt(id as string) },
+            where: { id: parseInt(id as string) }
           });
 
-          if (document) {
-            console.log('Document found:', {
-              id: document.id,
-              title: document.title,
-              contentLength: document.content?.length
-            });
-            res.status(200).json(document);
-          } else {
-            console.log('Document not found:', { id });
-            res.status(404).json({ error: 'Document not found' });
+          if (!document) {
+            return res.status(404).json({ error: 'Document not found' });
           }
+
+          return res.status(200).json(document);
         } else {
           const documents = await prisma.document.findMany({
-            orderBy: [
-              { isPinned: 'desc' },
-              { updatedAt: 'desc' }
-            ],
+            orderBy: { updatedAt: 'desc' }
           });
-          console.log('Retrieved all documents:', {
-            count: documents.length,
-            pinnedCount: documents.filter(d => d.isPinned).length
-          });
-          res.status(200).json(documents);
+          return res.status(200).json(documents);
         }
-        break;
 
       case 'POST':
         const { title, content, restricted, category } = req.body;
-
-        console.log('Creating document:', {
-          title,
-          category,
-          restricted,
-          contentLength: content?.length
-        });
 
         if (!title) {
           return res.status(400).json({ error: 'Title is required' });
@@ -8251,145 +8510,64 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             title,
             content: content || '',
             restricted: restricted || false,
-            category: category || 'General',
-            isPinned: false,
-          },
+            category: category || 'General'
+          }
         });
 
-        console.log('Document created successfully:', {
-          id: newDocument.id,
-          title: newDocument.title,
-          contentLength: newDocument.content.length
-        });
+        return res.status(201).json(newDocument);
 
-        res.status(201).json(newDocument);
-        break;
-
-      case 'PUT': {
+      case 'PUT':
         if (!id) {
-          console.warn('PUT request without document ID');
           return res.status(400).json({ error: 'Document ID is required' });
         }
-      
+
         const updates = req.body;
         const documentId = parseInt(id as string);
-        
-        console.log('Updating document:', {
-          id: documentId,
-          updates: {
-            title: updates.title,
-            contentLength: updates.content?.length,
-            category: updates.category,
-            restricted: updates.restricted,
-            isPinned: updates.isPinned
-          }
-        });
-      
-        try {
-          // First get the existing document
-          const existingDoc = await prisma.document.findUnique({
-            where: { id: documentId },
-          });
-      
-          if (!existingDoc) {
-            console.log('Update attempted on non-existent document:', { id: documentId });
-            return res.status(404).json({ error: 'Document not found' });
-          }
-      
-          // Update with merged data
-          const updatedDocument = await prisma.document.update({
-            where: { id: documentId },
-            data: {
-              title: updates.title ?? existingDoc.title,
-              content: updates.content ?? existingDoc.content,
-              category: updates.category ?? existingDoc.category,
-              restricted: updates.restricted ?? existingDoc.restricted,
-              isPinned: updates.isPinned ?? existingDoc.isPinned,
-            },
-          });
-      
-          console.log('Document updated successfully:', {
-            id: updatedDocument.id,
-            title: updatedDocument.title,
-            contentLength: updatedDocument.content.length,
-            category: updatedDocument.category
-          });
 
-          res.status(200).json(updatedDocument);
-        } catch (error) {
-          console.error('Error updating document:', error);
-          res.status(500).json({ error: 'Error updating document' });
-        }
-        break;
-      }
-
-      case 'PATCH':
-        if (!id) {
-          console.warn('PATCH request without document ID');
-          return res.status(400).json({ error: 'Document ID is required' });
-        }
-
-        const { restricted: patchRestricted, isPinned: patchIsPinned } = req.body;
-
-        console.log('Patching document:', {
-          id,
-          restricted: patchRestricted,
-          isPinned: patchIsPinned
+        const existingDoc = await prisma.document.findUnique({
+          where: { id: documentId }
         });
 
-        const patchedDocument = await prisma.document.update({
-          where: { id: parseInt(id as string) },
+        if (!existingDoc) {
+          return res.status(404).json({ error: 'Document not found' });
+        }
+
+        const updatedDocument = await prisma.document.update({
+          where: { id: documentId },
           data: {
-            ...(patchRestricted !== undefined && { restricted: patchRestricted }),
-            ...(patchIsPinned !== undefined && { isPinned: patchIsPinned }),
-          },
+            title: updates.title ?? existingDoc.title,
+            content: updates.content ?? existingDoc.content,
+            category: updates.category ?? existingDoc.category,
+            restricted: updates.restricted ?? existingDoc.restricted,
+            updatedAt: new Date()
+          }
         });
 
-        console.log('Document patched successfully:', {
-          id: patchedDocument.id,
-          restricted: patchedDocument.restricted,
-          isPinned: patchedDocument.isPinned
-        });
-
-        res.status(200).json(patchedDocument);
-        break;
+        return res.status(200).json(updatedDocument);
 
       case 'DELETE':
         if (!id) {
-          console.warn('DELETE request without document ID');
           return res.status(400).json({ error: 'Document ID is required' });
         }
 
-        console.log('Deleting document:', { id });
-
         await prisma.document.delete({
-          where: { id: parseInt(id as string) },
+          where: { id: parseInt(id as string) }
         });
 
-        console.log('Document deleted successfully:', { id });
-        res.status(200).json({ message: 'Document deleted successfully' });
-        break;
+        return res.status(200).json({ message: 'Document deleted successfully' });
 
       default:
-        console.warn('Invalid method:', req.method);
-        res.setHeader('Allow', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
-        res.status(405).end(`Method ${req.method} Not Allowed`);
+        res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
+        return res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
-    console.error('API error:', {
-      method: req.method,
-      id,
-      error: error instanceof Error ? {
-        message: error.message,
-        stack: error.stack
-      } : error
-    });
+    console.error('API error:', error);
     
     if ((error as any).code === 'P2025') {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    res.status(500).json({ 
+    return res.status(500).json({ 
       error: 'Internal server error',
       details: process.env.NODE_ENV === 'development' ? error : undefined
     });
@@ -12760,7 +12938,6 @@ networks:
 80f75c69a864acb3a4633cb0e88defce9f2ec31e4907620fd32e95f58bd5ab91b73193976b19b253c2b7624f206d367568ac7590a607f72fc344cec0ff399736236843d2bf6fc04be081c5f164f409ddce810dea1bcdfb077f68370d3deeab73cf4bc6225e5cd9a7e86ba512c256dbcb103d841cfa633f852488ca975e4a0fa8bf4a98e51bf1c0fc01501142f12a0285
 === FILE: ./prisma/schema.prisma ===
 
-// prisma/schema.prisma
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
@@ -12776,7 +12953,6 @@ model Document {
   content    String   @default("")
   restricted Boolean  @default(false)
   category   String   @default("General")
-  isPinned   Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }

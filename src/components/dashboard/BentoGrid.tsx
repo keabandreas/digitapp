@@ -72,7 +72,7 @@ export const BentoGrid = () => {
             onClick={() => setActiveWindow(item)}
             className={cn(
               "group relative overflow-hidden rounded-xl border border-border",
-              "bg-card/80 backdrop-blur-sm p-6",
+              "bg-base-300/100 backdrop-blur-sm p-6",
               "transition-all duration-300",
               "hover:scale-[1.02]",
               item.className,

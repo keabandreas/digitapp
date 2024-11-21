@@ -47,7 +47,7 @@ export default function WikiDocumentList() {
                   <div
                     className={`
                       flex items-center justify-between p-2
-                      ${doc.restricted && !isUnlocked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'}
+                      ${doc.restricted && !isUnlocked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-white/20'}
                     `}
                     onClick={() => {
                       if (!(doc.restricted && !isUnlocked)) {
@@ -60,7 +60,7 @@ export default function WikiDocumentList() {
                     </span>
                     <div className="flex items-center space-x-2">
                       {doc.restricted && (
-                        <IconLock size={16} className="text-warning" />
+                        <IconLock size={16} className="text-orange" />
                       )}
                       {(!doc.restricted || isUnlocked) && (
                         <>

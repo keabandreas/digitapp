@@ -37,12 +37,12 @@ export function WikiHeader() {
   };
 
   return (
-    <div className="flex-shrink-0 p-4 bg-base-300 border-b">
+    <div className="flex-shrink-0 p-4 bg-base-200 border-b">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold">Wiki Documents</h1>
-          <p className="text-[#D8DEE9]/80">
-            Press <kbd className="px-1.5 py-0.5 rounded bg-[#4C566A] text-sm">Ctrl + Space</kbd> to search
+          <p className="text-white/80">
+            Press <kbd className="px-1.5 py-0.5 rounded bg-muted-foreground/60 text-sm">Ctrl + Space</kbd> to search
           </p>
         </div>
         

@@ -11,7 +11,7 @@ const MarkdownEditor = dynamic(
     console.error('Failed to load MarkdownEditor:', err);
     // Return a fallback component
     return () => (
-      <div className="p-4 text-red-500">
+      <div className="p-4 text-red">
         Failed to load editor. Please refresh the page and try again.
       </div>
     );

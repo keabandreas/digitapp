@@ -32,7 +32,7 @@ export const Window = ({ isOpen, onClose, children, title }: WindowProps) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-[#2E3440]/80 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-base-100/80 backdrop-blur-sm"
         onClick={onClose}
       >
         <motion.div
@@ -43,14 +43,14 @@ export const Window = ({ isOpen, onClose, children, title }: WindowProps) => {
           onClick={(e) => e.stopPropagation()}
           className="w-[90vw] h-[90vh]"
         >
-          <Card className="relative w-full h-full bg-[#3B4252] rounded-xl shadow-xl flex flex-col border border-[#4C566A]">
-            <div className="flex items-center justify-between p-4 border-b border-[#4C566A]">
-              <h2 className="text-lg font-medium text-[#ECEFF4]">{title}</h2>
+          <Card className="relative w-full h-full bg-base-200 rounded-xl shadow-xl flex flex-col border border-white/40">
+            <div className="flex items-center justify-between p-4 border-b border-white/40">
+              <h2 className="text-lg font-medium text-white/90">{title}</h2>
               <button 
                 onClick={onClose}
-                className="p-2 rounded-lg hover:bg-[#434C5E] transition-colors"
+                className="p-2 rounded-lg hover:bg-base-100 transition-colors"
               >
-                <X className="w-5 h-5 text-[#D8DEE9]" />
+                <X className="w-5 h-5 text-white" />
               </button>
             </div>
             <div className="flex-1 p-4 overflow-auto custom-scrollbar">
